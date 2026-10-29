@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Mi cuenta')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<main class="mp-home">
+<div class="container my-5" style="max-width: 560px;">
+    <h1 class="mb-4 mp-page-title">Mi cuenta</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <img th:src="${avatarUrl}" alt="Foto de perfil" class="mp-avatar mp-avatar-lg"/>
+                <div>
+                    <strong th:text="${usuario.nombre}"></strong>
+                    <div class="text-muted small" th:text="${usuario.email}"></div>
+                </div>
+            </div>
+
+            <h5 class="mt-4 mb-2">Foto de perfil</h5>
+            <div class="alert alert-success py-2" th:if="${exitoAvatar}" th:text="${exitoAvatar}"></div>
+            <div class="alert alert-danger py-2" th:if="${errorAvatar}" th:text="${errorAvatar}"></div>
+            <p class="text-muted small" th:unless="${usuario.avatarUrl != null}">
+                Todavía no subiste una foto: se muestra la inicial de tu nombre.
+            </p>
+            <form th:action="@{/cuenta/avatar}" method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-start">
+                <input type="file" name="avatarFile" accept="image/*" class="form-control form-control-sm" required/>
+                <button type="submit" class="btn btn-mp btn-sm">Subir foto</button>
+            </form>
+            <p class="text-muted small mt-2 mb-0">Formatos soportados: JPG, PNG, WebP, GIF, BMP o SVG.</p>
+            <hr/>
+            <p><strong>Rol:</strong> <span th:text="${usuario.role}"></span></p>
+            <p>
+                <strong>Inicio de sesión:</strong>
+                <span>Email y contraseña</span>
+            </p>
+            <a sec:authorize="hasAnyRole('VENDEDOR','ADMIN')" th:href="@{/dashboard/mis-combos}" class="btn btn-outline-success btn-sm">Mis combos</a>
+        </div>
+    </div>
+
+    <h4>Editar cuenta</h4>
+    <div class="alert alert-success" th:if="${exitoNombre}" th:text="${exitoNombre}"></div>
+    <div class="alert alert-danger" th:if="${errorNombre}" th:text="${errorNombre}"></div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form th:action="@{/cuenta/nombre}" method="post">
+                <label class="form-label">Nombre de usuario</label>
+                <div class="d-flex gap-2">
+                    <input type="text" name="nombre" class="form-control" required minlength="2"
+                           th:value="${usuario.nombre}"/>
+                    <button type="submit" class="btn btn-mp">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <h4>Cambiar contraseña</h4>
+    <div class="alert alert-success" th:if="${exito}" th:text="${exito}"></div>
+    <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+    <form th:action="@{/cuenta/password}" th:object="${cambioPassword}" method="post">
+        <div class="mb-3">
+            <label class="form-label">Contraseña actual</label>
+            <input type="password" th:field="*{currentPassword}" class="form-control"/>
+            <div class="text-danger small" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Nueva contraseña</label>
+            <input type="password" th:field="*{newPassword}" class="form-control"/>
+            <div class="text-danger small" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Confirmar nueva contraseña</label>
+            <input type="password" th:field="*{confirmNewPassword}" class="form-control"/>
+            <div class="text-danger small" th:if="${#fields.hasErrors('confirmNewPassword')}" th:errors="*{confirmNewPassword}"></div>
+        </div>
+        <button type="submit" class="btn btn-success">Actualizar contraseña</button>
+    </form>
+</div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

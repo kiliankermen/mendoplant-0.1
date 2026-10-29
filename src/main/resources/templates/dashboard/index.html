@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container-fluid my-4">
+    <div class="mp-dash-layout">
+        <div th:replace="~{fragments/dashboard :: sidebar(${seccion})}"></div>
+
+        <main class="mp-dash-main">
+            <div class="mp-dash-title">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p class="text-muted mb-0">Resumen de tus ventas y publicaciones.</p>
+                </div>
+                <a th:href="@{/dashboard/publicar-planta}" class="btn btn-mp">
+                    <i class="bi bi-plus-lg me-1"></i>Publicar producto
+                </a>
+            </div>
+
+            <section class="mp-dash-card">
+                <div class="mp-dash-card-head">
+                    <div>
+                        <h2 id="mpChartTitulo">Ventas de los últimos 6 meses</h2>
+                        <p class="text-muted small mb-0">Ingresos de pedidos completados.</p>
+                    </div>
+                    <div class="mp-dash-card-tools">
+                        <span class="mp-dash-chip" th:text="${totalProductos} + ' productos'">0 productos</span>
+                        <a th:href="@{/dashboard/sales-history}" class="mp-btn-historial">
+                            <i class="bi bi-clock-history me-1"></i>Registro histórico
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mp-rango-group" role="tablist" aria-label="Periodo de ventas">
+                    <a th:each="r : ${rangos}"
+                       th:href="@{/dashboard(rango=${r[0]})}"
+                       class="mp-rango-btn"
+                       th:classappend="${r[0] == rangoSeleccionado} ? 'active'"
+                       th:attr="data-rango=${r[0]}"
+                       th:text="${r[1]}">Últimos 6 meses</a>
+                </div>
+
+                <div class="mp-chart-wrap">
+                    <canvas id="mpVentasChart" height="230"></canvas>
+                    <div id="mpChartTooltip" class="mp-chart-tooltip" hidden></div>
+                </div>
+            </section>
+
+            <section class="mp-stat-grid">
+                <article class="mp-stat-card" th:if="${masGenero != null}">
+                    <span class="mp-stat-label">Producto que más plata generó</span>
+                    <div class="mp-stat-product">
+                        <img th:src="${@imageStorageService.imagenPlanta(masGenero['id'], masGenero['imagenUrl'])}"
+                             alt="" onerror="this.onerror=null;this.src='/images/placeholder-planta.svg'"/>
+                        <div>
+                            <strong th:text="${masGenero['nombre']}">Producto</strong>
+                            <span class="mp-stat-value" th:text="'$' + ${masGenero['monto']}">$0</span>
+                            <small class="text-muted"><span th:text="${masGenero['cantidad']}">0</span> unidades vendidas</small>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="mp-stat-card" th:if="${masVendido != null}">
+                    <span class="mp-stat-label">Producto más vendido</span>
+                    <div class="mp-stat-product">
+                        <img th:src="${@imageStorageService.imagenPlanta(masVendido['id'], masVendido['imagenUrl'])}"
+                             alt="" onerror="this.onerror=null;this.src='/images/placeholder-planta.svg'"/>
+                        <div>
+                            <strong th:text="${masVendido['nombre']}">Producto</strong>
+                            <span class="mp-stat-value" th:text="${masVendido['cantidad']} + ' unidades'">0 unidades</span>
+                            <small class="text-muted" th:text="'$' + ${masVendido['monto']} + ' generados'">$0</small>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="mp-stat-card" th:if="${menosVendido != null}">
+                    <span class="mp-stat-label">Producto menos vendido</span>
+                    <div class="mp-stat-product">
+                        <img th:src="${@imageStorageService.imagenPlanta(menosVendido['id'], menosVendido['imagenUrl'])}"
+                             alt="" onerror="this.onerror=null;this.src='/images/placeholder-planta.svg'"/>
+                        <div>
+                            <strong th:text="${menosVendido['nombre']}">Producto</strong>
+                            <span class="mp-stat-value" th:text="${menosVendido['cantidad']} + ' unidades'">0 unidades</span>
+                            <small class="text-muted" th:text="'$' + ${menosVendido['monto']} + ' generados'">$0</small>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <p class="text-muted small mt-3" th:if="${masGenero == null}">
+                Todavía no hay productos ni ventas registradas para tu cuenta.
+            </p>
+        </main>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script th:inline="javascript">
+    window.mpChartLabels = /*[[${chartLabels}]]*/ [];
+    window.mpChartValues = /*[[${chartValues}]]*/ [];
+    window.mpChartCantidades = /*[[${chartCantidades}]]*/ [];
+    window.mpChartRango = /*[[${rangoSeleccionado}]]*/ '6m';
+</script>
+<script>
+    (function () {
+        const canvas = document.getElementById('mpVentasChart');
+        if (!canvas) return;
+        const tooltip = document.getElementById('mpChartTooltip');
+        const labels = window.mpChartLabels || [];
+        const values = (window.mpChartValues || []).map(Number);
+        const cantidades = (window.mpChartCantidades || []).map(Number);
+        let puntos = [];
+        let hoverIdx = -1;
+
+        const pad = {izq: 66, der: 18, arriba: 18, abajo: 34};
+        const altoCss = 230;
+
+        function formatearMonto(n) {
+            return '$' + Math.round(n).toLocaleString('es-AR');
+        }
+
+        function dibujar() {
+            const dpr = window.devicePixelRatio || 1;
+            const anchoCss = canvas.parentElement.clientWidth;
+            canvas.width = anchoCss * dpr;
+            canvas.height = altoCss * dpr;
+            canvas.style.width = anchoCss + 'px';
+            canvas.style.height = altoCss + 'px';
+            const ctx = canvas.getContext('2d');
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+
+            const w = anchoCss - pad.izq - pad.der;
+            const h = altoCss - pad.arriba - pad.abajo;
+            const max = Math.max(1, ...values);
+            const paso = max / 4;
+
+            ctx.clearRect(0, 0, anchoCss, altoCss);
+            ctx.font = '11px Roboto, sans-serif';
+            ctx.strokeStyle = '#e6efe5';
+            ctx.fillStyle = '#7d8a7c';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i <= 4; i++) {
+                const y = pad.arriba + h - (h * i / 4);
+                ctx.beginPath();
+                ctx.moveTo(pad.izq, y);
+                ctx.lineTo(pad.izq + w, y);
+                ctx.stroke();
+                ctx.fillText(formatearMonto(paso * i), 4, y + 4);
+            }
+
+            puntos = values.map((v, i) => {
+                const x = pad.izq + (values.length === 1 ? w / 2 : (w * i / (values.length - 1)));
+                const y = pad.arriba + h - (h * v / max);
+                return {x, y, v};
+            });
+
+            const grad = ctx.createLinearGradient(0, pad.arriba, 0, pad.arriba + h);
+            grad.addColorStop(0, 'rgba(47,107,58,.28)');
+            grad.addColorStop(1, 'rgba(47,107,58,0)');
+            ctx.beginPath();
+            ctx.moveTo(puntos[0].x, pad.arriba + h);
+            puntos.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.lineTo(puntos[puntos.length - 1].x, pad.arriba + h);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.beginPath();
+            puntos.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.strokeStyle = '#2f6b3a';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            // Etiquetas del eje X (se saltan algunas si hay demasiados puntos).
+            const salto = Math.ceil(puntos.length / 10);
+            const usarTooltip = puntos.length > 1;
+
+            puntos.forEach((p, i) => {
+                const activo = i === hoverIdx;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, activo ? 6 : 4, 0, Math.PI * 2);
+                ctx.fillStyle = activo ? '#2f6b3a' : '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#2f6b3a';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                if (i % salto === 0 || puntos.length <= 12) {
+                    ctx.fillStyle = '#7d8a7c';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(labels[i] || '', p.x, pad.arriba + h + 22);
+                }
+            });
+
+            // Línea guía vertical en el punto activo.
+            if (hoverIdx >= 0) {
+                const p = puntos[hoverIdx];
+                ctx.beginPath();
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = 'rgba(47,107,58,.5)';
+                ctx.lineWidth = 1;
+                ctx.moveTo(p.x, pad.arriba);
+                ctx.lineTo(p.x, pad.arriba + h);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            ctx.textAlign = 'left';
+            return {anchoCss, usarTooltip};
+        }
+
+        function mostrarTooltip(i, anchoCss) {
+            if (!tooltip || i < 0 || i >= puntos.length) {
+                if (tooltip) tooltip.hidden = true;
+                return;
+            }
+            const p = puntos[i];
+            tooltip.hidden = false;
+            tooltip.innerHTML = '<strong>' + (labels[i] || '') + '</strong>'
+                + '<span class="mp-tt-row"><i class="bi bi-currency-dollar"></i>' + formatearMonto(p.v) + '</span>'
+                + '<span class="mp-tt-row"><i class="bi bi-box-seam"></i>' + (cantidades[i] || 0) + ' unidades</span>';
+            const anchoTip = tooltip.offsetWidth || 130;
+            let left = p.x + 12;
+            if (left + anchoTip > anchoCss) {
+                left = p.x - anchoTip - 12;
+            }
+            tooltip.style.left = Math.max(4, left) + 'px';
+            tooltip.style.top = Math.max(4, p.y - 10) + 'px';
+        }
+
+        if (tooltip) {
+            canvas.addEventListener('mousemove', function (e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                let cercano = -1;
+                let dist = Infinity;
+                puntos.forEach((p, i) => {
+                    const d = Math.abs(p.x - x);
+                    if (d < dist) { dist = d; cercano = i; }
+                });
+                if (cercano !== hoverIdx) {
+                    hoverIdx = cercano;
+                    const info = dibujar();
+                    mostrarTooltip(hoverIdx, info.anchoCss);
+                }
+            });
+            canvas.addEventListener('mouseleave', function () {
+                hoverIdx = -1;
+                dibujar();
+                tooltip.hidden = true;
+            });
+        }
+
+        dibujar();
+
+        let t;
+        window.addEventListener('resize', function () {
+            clearTimeout(t);
+            t = setTimeout(dibujar, 120);
+        });
+    })();
+</script>
+</body>
+</html>

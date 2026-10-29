@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Blog - Admin')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestión del Blog</h1>
+        <a th:href="@{/admin/blog/nueva}" class="btn btn-success">+ Nuevo artículo</a>
+    </div>
+    <table class="table table-striped">
+        <thead><tr><th>Título</th><th>Categoría</th><th>Fecha</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="p : ${posts}">
+            <td th:text="${p.titulo}"></td>
+            <td th:text="${p.categoria}"></td>
+            <td th:text="${#temporals.format(p.fecha, 'dd/MM/yyyy')}"></td>
+            <td>
+                <a th:href="@{/blog/{slug}(slug=${p.slug})}" class="btn btn-sm btn-outline-secondary" target="_blank">Ver</a>
+                <a th:href="@{/admin/blog/editar/{id}(id=${p.id})}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <form th:action="@{/admin/blog/eliminar/{id}(id=${p.id})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('¿Eliminar artículo?')">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

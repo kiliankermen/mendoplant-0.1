@@ -1,0 +1,22 @@
+target/
+*.class
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# --- Credenciales / secretos (nunca subirlos al repo) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.keystore
+src/main/resources/application-local.yml
+src/main/resources/application-local.properties
+src/main/resources/application-*.local.yml
+src/main/resources/application-*.local.properties
+
+# --- Archivos generados en runtime ---
+uploads/
+*.log

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Categorías')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4">
+    <h1 class="mb-4">Categorías</h1>
+
+    <form th:action="@{/admin/categorias}" th:object="${categoria}" method="post" class="row g-2 mb-4">
+        <input type="hidden" th:field="*{id}"/>
+        <div class="col-md-4">
+            <input type="text" th:field="*{nombre}" class="form-control" placeholder="Nombre" required/>
+        </div>
+        <div class="col-md-6">
+            <input type="text" th:field="*{descripcion}" class="form-control" placeholder="Descripción"/>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-success w-100">Guardar</button>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead><tr><th>Nombre</th><th>Descripción</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="c : ${categorias}">
+            <td th:text="${c.nombre}"></td>
+            <td th:text="${c.descripcion}"></td>
+            <td>
+                <a th:href="@{/admin/categorias/editar/{id}(id=${c.id})}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <form th:action="@{/admin/categorias/eliminar/{id}(id=${c.id})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('¿Eliminar categoría?')">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

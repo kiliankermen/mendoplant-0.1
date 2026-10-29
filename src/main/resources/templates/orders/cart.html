@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mi carrito')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="mp-home">
+    <div class="container my-4">
+        <h1 class="mb-4 mp-page-title">Mi carrito</h1>
+
+        <div th:if="${carritoVacio}">
+            <div class="mp-empty alert alert-light text-center py-5">
+                <i class="bi bi-cart3 display-4 d-block mb-2 text-muted"></i>
+                Tu carrito está vacío.
+                <div class="mt-3">
+                    <a th:href="@{/}" class="btn btn-mp">Ir a la tienda</a>
+                </div>
+            </div>
+        </div>
+
+        <div th:unless="${carritoVacio}">
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-end">Subtotal</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${carritoItems}" th:attr="data-planta-id=${item.plantId}">
+                        <td>
+                            <div class="d-flex flex-column align-items-center gap-1">
+                                <a th:href="@{/plantas/{slug}(slug=${#strings.toLowerCase(#strings.replace(#strings.replace(item.plantaNombreCientifico,' ','-'),'_','-'))})}" class="fw-semibold mp-link text-center"
+                                   th:text="${item.nombre}">Planta</a>
+                                <img th:src="${@imageStorageService.imagenPlanta(item.plantId, item.imagenUrl)}" alt="" class="mp-cart-thumb"
+                                     onerror="this.onerror=null; this.src='/images/placeholder-planta.svg'"/>
+                                <div class="small text-muted"
+                                     th:text="'$' + ${item.precioMostrado} + ' c/u'">$0 c/u</div>
+                            </div>
+                        </td>
+                        <td style="width: 200px">
+                            <div style="display:flex; gap:10px; align-items:center; justify-content:center;">
+                                <form th:action="@{/carrito/restar/{id}(id=${item.plantId})}" method="post">
+                                    <button class="btn btn-outline-secondary btn-lg btn-circle" title="Restar uno"
+                                            aria-label="Restar uno">
+                                        <i class="bi bi-dash-lg"></i>
+                                    </button>
+                                </form>
+                                <span class="btn btn-light btn-lg disabled cart-qty" th:text="${item.cantidad}">1</span>
+                                <form th:action="@{/carrito/agregar}" method="post" class="js-cart-add">
+                                    <input type="hidden" name="plantId" th:value="${item.plantId}"/>
+                                    <input type="hidden" name="cantidad" value="1"/>
+                                    <button class="btn btn-outline-success btn-lg btn-circle" title="Sumar uno"
+                                            aria-label="Sumar uno">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                        <td class="text-end fw-bold cart-subtotal" th:text="'$' + ${item.subtotal}">$0</td>
+                        <td class="text-end">
+                            <a th:href="@{/ordenes/comprar/{id}(id=${item.plantId})}" class="btn btn-lg btn-outline-success me-1 btn-circle mp-hide-movil"
+                               title="Comprar en un paso">
+                                <i class="bi bi-bag-check"></i>
+                            </a>
+                            <form th:action="@{/carrito/quitar/{id}(id=${item.plantId})}" method="post" class="d-inline">
+                                <button class="btn btn-lg btn-outline-danger btn-circle" title="Quitar" aria-label="Quitar del carrito">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4 p-4 bg-light rounded-3">
+                <div>
+                    <h4 class="mb-1 mp-cart-total">Total: $<span th:text="${carritoTotal}" id="cartTotal">0</span></h4>
+                    <small class="text-muted mp-cart-subtotal-text" th:text="${carritoCantidad} + ' ítems en tu carrito'" id="cartCount">0 ítems</small>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    <form th:action="@{/carrito/vaciar}" method="post" id="vaciarForm">
+                        <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-toggle="modal"
+                                data-bs-target="#vaciarModal">Vaciar carrito</button>
+                    </form>
+                    <a th:href="@{/ordenes/checkout}" class="btn btn-mp btn-lg px-4">Finalizar compra</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<div class="modal fade" id="vaciarModal" tabindex="-1" aria-labelledby="vaciarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="vaciarModalLabel">Vaciar carrito</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                ¿Deseas vaciar el carrito?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">No</button>
+                <button type="button" class="btn btn-mp" onclick="document.getElementById('vaciarForm').submit()">Sí</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

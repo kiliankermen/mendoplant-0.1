@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${post.titulo})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4" style="max-width: 720px;">
+    <span class="badge badge-luz mb-2" th:text="${post.categoria}"></span>
+    <h1 th:text="${post.titulo}"></h1>
+    <p class="text-muted">
+        <span th:if="${post.autor != null}" th:text="'Por ' + ${post.autor.nombre} + ' — '"></span>
+        <span th:text="${#temporals.format(post.fecha, 'dd/MM/yyyy')}"></span>
+    </p>
+    <div style="white-space: pre-line;" th:text="${post.contenido}"></div>
+    <a th:href="@{/blog}" class="btn btn-outline-success mt-4">← Volver al blog</a>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

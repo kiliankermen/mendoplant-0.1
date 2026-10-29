@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="520" viewBox="0 0 920 520">
+  <defs>
+    <g id="flor">
+      <ellipse cx="0" cy="-31" rx="20" ry="31" transform="rotate(0)" fill="#ffffff" opacity="0.95"/>
+      <ellipse cx="0" cy="-31" rx="20" ry="31" transform="rotate(60)" fill="#ffffff" opacity="0.95"/>
+      <ellipse cx="0" cy="-31" rx="20" ry="31" transform="rotate(120)" fill="#ffffff" opacity="0.95"/>
+      <ellipse cx="0" cy="-31" rx="20" ry="31" transform="rotate(180)" fill="#ffffff" opacity="0.95"/>
+      <ellipse cx="0" cy="-31" rx="20" ry="31" transform="rotate(240)" fill="#ffffff" opacity="0.95"/>
+      <ellipse cx="0" cy="-31" rx="20" ry="31" transform="rotate(300)" fill="#ffffff" opacity="0.95"/>
+      <circle cx="0" cy="0" r="18" fill="#ffd54a"/>
+    </g>
+    <g id="hoja">
+      <path d="M0 0 C 18 -26, 52 -20, 66 0 C 52 20, 18 26, 0 0 Z" fill="#7fd49e"/>
+    </g>
+  </defs>
+
+  <rect width="920" height="520" fill="#2f9e63"/>
+  <rect y="430" width="920" height="90" fill="#1f7a4a"/>
+
+  <g stroke="#7fd49e" stroke-width="10" stroke-linecap="round" fill="none">
+    <path d="M112 470 C 110 410, 130 355, 155 300"/>
+    <path d="M300 480 C 300 420, 308 340, 300 255"/>
+    <path d="M470 490 C 472 400, 456 320, 470 195"/>
+    <path d="M652 465 C 648 415, 664 350, 640 275"/>
+    <path d="M820 450 C 822 415, 806 380, 805 335"/>
+  </g>
+
+  <g>
+    <use href="#hoja" transform="translate(122,430) scale(0.9)"/>
+    <use href="#hoja" transform="translate(296,438) scale(0.85) rotate(-16)"/>
+    <use href="#hoja" transform="translate(466,448) scale(1) rotate(10)"/>
+    <use href="#hoja" transform="translate(648,432) scale(0.85) rotate(-22)"/>
+    <use href="#hoja" transform="translate(822,415) scale(0.7)"/>
+  </g>
+
+  <g>
+    <use href="#flor" transform="translate(155,300) scale(1.1)"/>
+    <use href="#flor" transform="translate(300,255) scale(0.95)"/>
+    <use href="#flor" transform="translate(470,195) scale(1.35)"/>
+    <use href="#flor" transform="translate(640,275) scale(0.95)"/>
+    <use href="#flor" transform="translate(805,335) scale(0.85)"/>
+    <use href="#flor" transform="translate(235,125) scale(0.6)"/>
+    <use href="#flor" transform="translate(560,100) scale(0.55)"/>
+    <use href="#flor" transform="translate(715,145) scale(0.65)"/>
+  </g>
+</svg>

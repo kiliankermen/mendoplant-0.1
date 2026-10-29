@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Catálogo')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="mp-home">
+    <div class="container my-4">
+        <h1 class="mb-2 mp-page-title">Catálogo de plantas</h1>
+        <div th:replace="~{fragments/layout :: filtro(${gruposFiltro}, @{/plantas}, 'todos', ${filtro})}"></div>
+        <div th:replace="~{fragments/layout :: cardGrid(${plantas})}"></div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

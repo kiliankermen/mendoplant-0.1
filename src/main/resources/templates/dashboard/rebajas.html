@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Crear rebajas')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container-fluid my-4">
+    <div class="mp-dash-layout">
+        <div th:replace="~{fragments/dashboard :: sidebar(${seccion})}"></div>
+
+        <main class="mp-dash-main">
+            <div class="mp-dash-title">
+                <div>
+                    <h1>Rebajas</h1>
+                    <p class="text-muted mb-0">Aplicá un descuento porcentual a tus productos.</p>
+                </div>
+                <span class="mp-dash-chip" th:if="${rebaja != null}"
+                      th:text="'Editando: ' + ${rebaja.nombre}">Editando paquete</span>
+            </div>
+
+            <div class="alert alert-success" th:if="${ok}" th:text="${ok}"></div>
+            <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+            <form th:action="@{/dashboard/promociones/crear-rebajas}" method="post">
+                <input type="hidden" name="promoId" th:if="${rebaja != null}" th:value="${rebaja.id}"/>
+                <section class="mp-selected-panel" aria-live="polite">
+                    <div class="mp-rebaja-top">
+                        <div class="mp-rebaja-input">
+                            <label class="form-label" for="mpPorcentaje">Descuento (%)</label>
+                            <div class="input-group input-group-lg">
+                                <input type="number" id="mpPorcentaje" name="porcentaje" class="form-control"
+                                       min="1" max="90" step="1" required
+                                       th:value="${porcentajeActual != null ? porcentajeActual : 10}"/>
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <small class="text-muted">Máximo permitido: 90%.</small>
+                        </div>
+                        <button type="submit" class="btn btn-mp btn-lg">
+                            <i class="bi bi-tags me-1"></i>Aplicar rebaja
+                        </button>
+                    </div>
+
+                    <div class="mp-selected-head">
+                        <div>
+                            <h2>Productos seleccionados</h2>
+                            <p class="text-muted small mb-0">La rebaja se va a aplicar a estos productos.</p>
+                        </div>
+                        <span class="mp-dash-chip" id="mpRebajaCount">0</span>
+                    </div>
+
+                    <div class="mp-promo-name mp-promo-customize">
+                        <div class="mp-promo-name-input">
+                            <label class="form-label" for="mpNombrePromo">Nombre de la promoción</label>
+                            <input type="text" id="mpNombrePromo" name="nombre" class="form-control"
+                                   maxlength="120" th:value="${nombrePromo}"
+                                   placeholder="Ej.: Rebajas Primavera" autocomplete="off"/>
+                            <small class="text-muted">
+                                Se mostrará en la portada cuando el paquete tenga 2 o más productos.
+                                Para una sola carta el nombre es opcional y no se anuncia en la portada.
+                            </small>
+
+                            <label class="form-label mt-3" for="mpDescripcionPromo">Descripción de la promoción</label>
+                            <input type="text" id="mpDescripcionPromo" name="descripcion" class="form-control"
+                                   maxlength="100" th:value="${descripcionPromo}"
+                                   placeholder="Ej.: Descuento de primavera en plantas de interior"
+                                   autocomplete="off"/>
+                            <small class="text-muted">Máximo 100 caracteres.</small>
+                        </div>
+
+                        <label class="mp-promo-color-control" for="mpColorBanner">
+                            <span>Color del banner</span>
+                            <input type="color" id="mpColorBanner" name="colorBanner"
+                                   class="form-control form-control-color" th:value="${colorBanner}"
+                                   title="Color del banner en la portada"/>
+                        </label>
+                    </div>
+
+                    <div class="mp-selected-list" id="mpRebajaSeleccionados">
+                        <p class="mp-selected-empty">Todavía no seleccionaste productos.</p>
+                    </div>
+
+                <section class="mp-dash-card">
+                    <div class="mp-dash-card-head">
+                        <h2>Tus productos</h2>
+                        <span class="mp-dash-chip" th:text="${#lists.size(productos)} + ' productos'">0</span>
+                    </div>
+
+                    <div class="mp-dash-search">
+                        <i class="bi bi-search"></i>
+                        <input type="search" id="mpBuscarRebaja" class="form-control"
+                               placeholder="Buscar producto por nombre..." autocomplete="off"/>
+                    </div>
+
+                    <div class="mp-select-grid" id="mpRebajaGrid" th:if="${!#lists.isEmpty(productos)}">
+                        <label class="mp-select-card" th:each="p : ${productos}"
+                               th:classappend="${plantasEnPaquetes.contains(p.id)} ? ' is-en-promocion'"
+                               th:attr="data-nombre=${p.nombreComun + ' ' + p.nombreCientifico},
+                                        data-en-promocion=${plantasEnPaquetes.contains(p.id)}">
+                            <input type="checkbox" name="productos" th:value="${p.id}"
+                                   th:checked="${seleccionadas.contains(p.id)}"/>
+                            <img th:src="${@imageStorageService.imagenPlanta(p.id, p.imagenUrl)}" alt=""
+                                 onerror="this.onerror=null;this.src='/images/placeholder-planta.svg'"/>
+                            <span class="mp-select-check"><i class="bi bi-check-lg"></i></span>
+                            <strong class="mp-select-name" th:text="${p.nombreComun}">Producto</strong>
+                            <span class="text-muted small mp-select-price" th:text="'$' + ${p.precio}">$0</span>
+                            <span class="text-muted small" th:text="${p.stock} + ' disponibles'">0</span>
+                        </label>
+                    </div>
+                    <p class="mp-dash-search-empty" id="mpRebajaSinResultados" hidden>
+                        No encontramos productos con ese nombre.
+                    </p>
+                    <p class="text-muted mb-0" th:if="${#lists.isEmpty(productos)}">
+                        No tenés productos para rebajar.
+                    </p>
+                    <p class="text-muted small mt-3 mb-0">
+                        El descuento se guarda en la base de datos y se aplica a los productos marcados.
+                    </p>
+                </section>
+                </section>
+            </form>
+
+        </main>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script>
+    (function () {
+        const form = document.querySelector('form[action$="/promociones/crear-rebajas"]');
+        if (!form) return;
+        const grid = document.getElementById('mpRebajaGrid');
+        const buscador = document.getElementById('mpBuscarRebaja');
+        const sinResultados = document.getElementById('mpRebajaSinResultados');
+        const listaSeleccionados = document.getElementById('mpRebajaSeleccionados');
+        const contador = document.getElementById('mpRebajaCount');
+        const nombrePromo = document.getElementById('mpNombrePromo');
+
+        function normalizar(texto) {
+            return (texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function marcados() {
+            return grid ? Array.from(grid.querySelectorAll('input[name="productos"]:checked')) : [];
+        }
+
+        function renderSeleccionados() {
+            const seleccionados = marcados();
+            if (grid) {
+                grid.querySelectorAll('.mp-select-card').forEach(carta => {
+                    const check = carta.querySelector('input[name="productos"]');
+                    carta.classList.toggle('is-selected', !!(check && check.checked));
+                });
+            }
+            contador.textContent = seleccionados.length;
+            if (nombrePromo) {
+                nombrePromo.required = seleccionados.length > 1;
+                nombrePromo.placeholder = seleccionados.length > 1
+                    ? 'Ej.: Rebajas Primavera'
+                    : 'Opcional para una sola carta';
+            }
+            listaSeleccionados.innerHTML = '';
+            if (!seleccionados.length) {
+                const vacio = document.createElement('p');
+                vacio.className = 'mp-selected-empty';
+                vacio.textContent = 'Todavía no seleccionaste productos.';
+                listaSeleccionados.appendChild(vacio);
+                filtrar();
+                return;
+            }
+            seleccionados.forEach(input => {
+                const carta = input.closest('.mp-select-card');
+                const item = document.createElement('article');
+                item.className = 'mp-selected-card';
+
+                const foto = document.createElement('img');
+                const fotoOriginal = carta.querySelector('img');
+                foto.src = fotoOriginal.currentSrc || fotoOriginal.src;
+                foto.alt = '';
+
+                const info = document.createElement('div');
+                info.className = 'mp-selected-info';
+                const nombre = document.createElement('strong');
+                nombre.textContent = carta.querySelector('.mp-select-name').textContent;
+                const precio = document.createElement('span');
+                precio.textContent = carta.querySelector('.mp-select-price').textContent;
+                info.append(nombre, precio);
+
+                const quitar = document.createElement('button');
+                quitar.type = 'button';
+                quitar.className = 'mp-selected-remove';
+                quitar.setAttribute('aria-label', 'Quitar producto');
+                const icono = document.createElement('i');
+                icono.className = 'bi bi-x-lg';
+                quitar.appendChild(icono);
+                quitar.addEventListener('click', () => {
+                    input.checked = false;
+                    renderSeleccionados();
+                });
+
+                item.append(foto, info, quitar);
+                listaSeleccionados.appendChild(item);
+            });
+            filtrar();
+        }
+
+        function filtrar() {
+            if (!grid) return;
+            const termino = normalizar(buscador.value.trim());
+            let visibles = 0;
+            grid.querySelectorAll('.mp-select-card').forEach(carta => {
+                if (carta.classList.contains('is-en-promocion') || carta.classList.contains('is-selected')) {
+                    carta.hidden = true;
+                    return;
+                }
+                const coincide = !termino || normalizar(carta.dataset.nombre).includes(termino);
+                carta.hidden = !coincide;
+                if (coincide) visibles++;
+            });
+            sinResultados.hidden = visibles > 0;
+        }
+
+        if (grid) {
+            grid.addEventListener('change', event => {
+                if (event.target.matches('input[name="productos"]')) {
+                    renderSeleccionados();
+                }
+            });
+        }
+        buscador.addEventListener('input', filtrar);
+
+        form.addEventListener('submit', function (e) {
+            if (!marcados().length) {
+                e.preventDefault();
+                alert('Seleccioná al menos un producto para aplicar la rebaja.');
+                return;
+            }
+            const pct = Number(document.getElementById('mpPorcentaje').value);
+            if (!pct || pct < 1 || pct > 90) {
+                e.preventDefault();
+                alert('El descuento debe estar entre 1% y 90%.');
+                return;
+            }
+            if (marcados().length > 1 && nombrePromo && !nombrePromo.value.trim()) {
+                e.preventDefault();
+                alert('Ponele un nombre al paquete de promoción.');
+                nombrePromo.focus();
+            }
+        });
+
+        renderSeleccionados();
+
+    })();
+</script>
+</body>
+</html>

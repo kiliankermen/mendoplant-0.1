@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Publicar ' + ${tipoTitulo})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container-fluid my-4">
+    <div class="mp-dash-layout">
+        <div th:replace="~{fragments/dashboard :: sidebar(${seccion})}"></div>
+
+        <main class="mp-dash-main">
+            <div class="mp-dash-title">
+                <div>
+                    <h1 th:text="'Publicar ' + ${tipoTitulo}">Publicar producto</h1>
+                    <p class="text-muted mb-0">
+                        Cargá al menos 2 imágenes, completá los datos y elegí las etiquetas de
+                        <strong th:text="${categoriaNombre}">Plantas</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+            <form id="mpPublicarForm" th:action="@{/dashboard/publicar-{tipo}(tipo=${tipo})}"
+                  th:object="${producto}" method="post" enctype="multipart/form-data">
+                <input type="hidden" th:field="*{id}"/>
+
+                <div class="mp-pub-grid">
+                    <div class="mp-pub-left">
+                        <article class="mp-pub-card">
+                            <div class="mp-pub-media">
+                                <label class="mp-pub-add" title="Cargar imágenes">
+                                    <input type="file" id="mpImagenes" name="archivos" accept="image/*"
+                                           multiple hidden/>
+                                    <span class="mp-pub-plus">+</span>
+                                    <small>Cargar imágenes</small>
+                                </label>
+                                <div class="mp-pub-thumbs" id="mpPubThumbs"></div>
+                            </div>
+                            <p class="mp-pub-hint">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Mínimo 2 imágenes. Podés eliminar con la X, reordenar arrastrando y volver a "Cargar imágenes" para agregar más. Formatos JPG, PNG, WebP, GIF o SVG (máx. 5MB cada una).
+                            </p>
+
+                            <div class="mp-pub-field">
+                                <label class="form-label">
+                                    <i class="bi bi-pencil me-1"></i>Nombre común
+                                </label>
+                                <input type="text" class="form-control form-control-lg"
+                                       th:field="*{nombreComun}" placeholder="Ej.: Potus" maxlength="120"/>
+                            </div>
+
+                            <div class="mp-pub-field">
+                                <label class="form-label">
+                                    <i class="bi bi-pencil me-1"></i>Nombre científico
+                                    <small class="text-muted fw-normal">(se usa en la URL)</small>
+                                </label>
+                                <input type="text" class="form-control" id="mpNombreCientifico"
+                                       th:field="*{nombreCientifico}" placeholder="Ej.: Epipremnum aureum"
+                                       maxlength="150"/>
+                                <small class="text-muted" id="mpUrlPreview">/plantas/ejemplo</small>
+                            </div>
+
+                            <div class="mp-pub-field">
+                                <label class="form-label"><i class="bi bi-pencil me-1"></i>Descripción</label>
+                                <textarea class="form-control" id="mpDescripcion" rows="4"
+                                          th:field="*{descripcion}" maxlength="2000"
+                                          placeholder="Contá qué hace especial a este producto..."></textarea>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-sm-6 mp-pub-field">
+                                    <label class="form-label"><i class="bi bi-pencil me-1"></i>Precio</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" step="0.01" min="0.01" class="form-control"
+                                               id="mpPrecio" th:field="*{precio}" placeholder="0"/>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 mp-pub-field">
+                                    <label class="form-label"><i class="bi bi-pencil me-1"></i>Stock</label>
+                                    <input type="number" min="10" class="form-control" id="mpStock"
+                                           th:field="*{stock}" value="10"/>
+                                    <small class="text-muted">Mínimo 10 unidades.</small>
+                                </div>
+                            </div>
+                        </article>
+
+                        <div class="mp-pub-tags-wrap">
+                            <span class="mp-pub-tags-title">Etiquetas seleccionadas</span>
+                            <div class="mp-pub-tags" id="mpPubTags">
+                                <span class="text-muted small">Todavía no elegiste etiquetas.</span>
+                            </div>
+                        </div>
+
+                        <div class="mp-pub-actions">
+                            <button type="button" class="btn btn-outline-success btn-lg" id="mpVistaPrevia">
+                                <i class="bi bi-eye me-1"></i>Vista previa
+                            </button>
+                            <button type="submit" class="btn btn-mp btn-lg">
+                                <i class="bi bi-upload me-1"></i>Publicar
+                            </button>
+                        </div>
+                    </div>
+
+                    <aside class="mp-pub-filters">
+                        <div class="mp-pub-filters-head">
+                            <h2>Filtros de <span th:text="${categoriaNombre}">Plantas</span></h2>
+                            <p class="text-muted small mb-0">Marcá todas las etiquetas que correspondan.</p>
+                        </div>
+
+                        <div class="mp-pub-group" th:each="g : ${grupos}"
+                             th:attr="data-campo=${g.campo},
+                                      data-single=${g.campo == 'tamanos' or g.campo == 'luces' or g.campo == 'nivelesCuidado' or g.campo == 'tiposPlanta'}">
+                            <span class="mp-pub-group-title">
+                                <span th:text="${g.titulo}">Atributo</span>
+                                <small class="text-muted fw-normal"
+                                       th:text="(${g.campo == 'tamanos' or g.campo == 'luces' or g.campo == 'nivelesCuidado' or g.campo == 'tiposPlanta'} ? '(excluyente)' : '(incluyente)')">(incluyente)</small>
+                            </span>
+                            <label class="mp-pub-check" th:each="o : ${g.opciones}"
+                                   th:attr="for=${g.campo + '-' + o.valor}">
+                                <input type="checkbox" th:id="${g.campo + '-' + o.valor}"
+                                       th:name="${g.campo}" th:value="${o.valor}"
+                                       th:checked="${o.seleccionado}"
+                                       th:attr="data-etiqueta=${o.etiqueta}"/>
+                                <span class="mp-pub-check-box"></span>
+                                <span th:text="${o.etiqueta}">Opción</span>
+                            </label>
+                        </div>
+                    </aside>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<div class="modal fade" id="mpPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-eye me-2"></i>Vista previa de la publicación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4 align-items-start">
+                    <div class="col-lg-6">
+                        <div class="pcard" style="pointer-events:none; cursor:default;">
+                            <div class="pcard-img">
+                                <img class="pcard-img-base" id="mpPrevCardImgBase" src="/images/placeholder-planta.svg"
+                                     alt="Foto de la planta"/>
+                                <img class="pcard-img-hover" id="mpPrevCardImgHover" src="/images/placeholder-planta.svg"
+                                     alt="Foto de la planta"/>
+                            </div>
+                            <div class="pcard-body">
+                                <div class="pcard-name" id="mpPrevCardNombre">Nombre</div>
+                                <div class="pcard-sci" id="mpPrevCardCientifico">Científico</div>
+                                <div class="pcard-price">
+                                    <span class="pcard-now" id="mpPrevCardPrecio">$0</span>
+                                </div>
+                                <div class="pcard-stock">
+                                    <span class="stock-msg" id="mpPrevCardStock">0 Disponibles</span>
+                                </div>
+                                <div class="pcard-actions">
+                                    <button type="button" class="btn btn-mp btn-sm w-100" disabled>
+                                        <i class="bi bi-cart-plus me-1"></i>Agregar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h1 class="h3" id="mpPrevNombre">Nombre</h1>
+                        <p class="text-muted fst-italic mb-2" id="mpPrevCientifico">Científico</p>
+                        <p id="mpPrevDescripcion">Descripción</p>
+                        <div class="display-6 fw-bold mp-price-now" id="mpPrevPrecio">$0</div>
+                        <div class="mp-detail-tags mt-3" id="mpPrevTags"></div>
+                        <ul class="list-unstyled mp-detail-list mt-3">
+                            <li><strong>Stock disponible:</strong> <span id="mpPrevStock">0</span></li>
+                            <li><strong>Categoría:</strong> <span th:text="${categoriaNombre}">Plantas</span></li>
+                            <li><strong>Publicado por:</strong> vos</li>
+                        </ul>
+                        <p class="text-muted small mb-0" id="mpPrevUrl"></p>
+                        <div class="mt-3">
+                            <small class="text-muted">Galería (orden actual):</small>
+                            <div class="d-flex flex-wrap gap-2 mt-2" id="mpPreviewGalleryThumbs"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-mp" id="mpPublicarDesdePreview">Publicar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script>
+    (function () {
+        const form = document.getElementById('mpPublicarForm');
+        const inputImagenes = document.getElementById('mpImagenes');
+        const thumbs = document.getElementById('mpPubThumbs');
+        const tags = document.getElementById('mpPubTags');
+        const nombre = document.getElementById('mpNombreComun') || form.querySelector('[name="nombreComun"]');
+        const cientifico = document.getElementById('mpNombreCientifico');
+        const descripcion = document.getElementById('mpDescripcion');
+        const precio = document.getElementById('mpPrecio');
+        const stock = document.getElementById('mpStock');
+        const urlPreview = document.getElementById('mpUrlPreview');
+        const checkboxes = () => Array.from(form.querySelectorAll('.mp-pub-check input[type="checkbox"]'));
+
+        const imagenes = [];
+
+        function urlDe(nombreCientifico) {
+            return '/plantas/' + (nombreCientifico || 'ejemplo')
+                .trim().toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/_/g, '-');
+        }
+
+        function actualizarUrl() {
+            if (urlPreview) {
+                urlPreview.textContent = urlDe(cientifico.value);
+            }
+        }
+
+        function etiquetasSeleccionadas() {
+            return checkboxes().filter(c => c.checked).map(c => c.dataset.etiqueta || c.value);
+        }
+
+        function actualizarEtiquetas() {
+            const seleccionadas = etiquetasSeleccionadas();
+            tags.innerHTML = '';
+            if (!seleccionadas.length) {
+                const vacio = document.createElement('span');
+                vacio.className = 'text-muted small';
+                vacio.textContent = 'Todavía no elegiste etiquetas.';
+                tags.appendChild(vacio);
+                return;
+            }
+            seleccionadas.forEach(texto => {
+                const chip = document.createElement('span');
+                chip.className = 'pcard-tag';
+                chip.textContent = texto;
+                tags.appendChild(chip);
+            });
+        }
+
+        function sincronizarInput() {
+            const dataTransfer = new DataTransfer();
+            imagenes.forEach(item => dataTransfer.items.add(item.file));
+            inputImagenes.files = dataTransfer.files;
+        }
+
+        function renderThumbs() {
+            thumbs.innerHTML = '';
+            imagenes.forEach((item, indice) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mp-pub-thumb';
+                wrapper.draggable = true;
+                wrapper.dataset.index = String(indice);
+
+                const img = document.createElement('img');
+                img.src = item.url;
+                img.alt = 'Imagen ' + (indice + 1);
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'mp-pub-thumb-remove';
+                remove.setAttribute('aria-label', 'Eliminar imagen');
+                remove.innerHTML = '<i class="bi bi-x"></i>';
+                remove.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    URL.revokeObjectURL(item.url);
+                    imagenes.splice(indice, 1);
+                    sincronizarInput();
+                    renderThumbs();
+                    limpiarError();
+                });
+
+                const badge = document.createElement('span');
+                badge.className = 'mp-pub-thumb-badge';
+                badge.textContent = String(indice + 1);
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(remove);
+                wrapper.appendChild(badge);
+
+                wrapper.addEventListener('dragstart', (e) => {
+                    wrapper.classList.add('mp-pub-thumb-dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', String(indice));
+                });
+                wrapper.addEventListener('dragend', () => {
+                    wrapper.classList.remove('mp-pub-thumb-dragging');
+                    thumbs.querySelectorAll('.mp-pub-thumb').forEach(t => t.classList.remove('mp-pub-thumb-over'));
+                });
+                wrapper.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    wrapper.classList.add('mp-pub-thumb-over');
+                });
+                wrapper.addEventListener('dragleave', () => {
+                    wrapper.classList.remove('mp-pub-thumb-over');
+                });
+                wrapper.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    wrapper.classList.remove('mp-pub-thumb-over');
+                    const origen = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                    const destino = indice;
+                    if (isNaN(origen) || origen === destino) return;
+                    const movido = imagenes.splice(origen, 1)[0];
+                    imagenes.splice(destino, 0, movido);
+                    sincronizarInput();
+                    renderThumbs();
+                    limpiarError();
+                });
+
+                thumbs.appendChild(wrapper);
+            });
+        }
+
+        function mostrarError(mensaje) {
+            let alerta = form.querySelector('.js-error-cliente');
+            if (!alerta) {
+                alerta = document.createElement('div');
+                alerta.className = 'alert alert-danger js-error-cliente';
+                form.prepend(alerta);
+            }
+            alerta.textContent = mensaje;
+        }
+
+        function limpiarError() {
+            const alerta = form.querySelector('.js-error-cliente');
+            if (alerta) alerta.remove();
+        }
+
+        function abrirVistaPrevia() {
+            limpiarError();
+            const cardImgBase = document.getElementById('mpPrevCardImgBase');
+            const cardImgHover = document.getElementById('mpPrevCardImgHover');
+            const thumbsVista = document.getElementById('mpPreviewGalleryThumbs');
+            thumbsVista.innerHTML = '';
+
+            if (imagenes.length) {
+                cardImgBase.src = imagenes[0].url;
+                cardImgBase.alt = nombre.value || 'Foto de la planta';
+                if (imagenes[1]) {
+                    cardImgHover.src = imagenes[1].url;
+                    cardImgHover.style.display = 'block';
+                } else {
+                    cardImgHover.src = imagenes[0].url;
+                    cardImgHover.style.display = 'none';
+                }
+                imagenes.forEach((item, indice) => {
+                    const img = document.createElement('img');
+                    img.src = item.url;
+                    img.alt = 'Imagen ' + (indice + 1);
+                    img.style.width = '72px';
+                    img.style.height = '72px';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '10px';
+                    img.style.border = '1px solid #eef4ee';
+                    thumbsVista.appendChild(img);
+                });
+            } else {
+                cardImgBase.src = '/images/placeholder-planta.svg';
+                cardImgHover.src = '/images/placeholder-planta.svg';
+                cardImgHover.style.display = 'none';
+            }
+
+            document.getElementById('mpPrevNombre').textContent = nombre.value || 'Nombre del producto';
+            document.getElementById('mpPrevCientifico').textContent = cientifico.value || 'Nombre científico';
+            document.getElementById('mpPrevCardNombre').textContent = nombre.value || 'Nombre del producto';
+            document.getElementById('mpPrevCardCientifico').textContent = cientifico.value || 'Nombre científico';
+            document.getElementById('mpPrevDescripcion').textContent =
+                descripcion.value || 'Todavía no agregaste una descripción.';
+            const precioFmt = precio.value ? Number(precio.value).toLocaleString('es-AR') : '0';
+            document.getElementById('mpPrevPrecio').textContent = '$' + precioFmt;
+            document.getElementById('mpPrevCardPrecio').textContent = '$' + precioFmt;
+            document.getElementById('mpPrevStock').textContent = stock.value || '0';
+            document.getElementById('mpPrevCardStock').textContent = (stock.value || '0') + ' Disponibles';
+            const stockMsg = document.querySelector('#mpPrevCardStock');
+            if (stockMsg) {
+                stockMsg.classList.toggle('stock-low', stock.value && Number(stock.value) < 10);
+            }
+            if (urlPreview) {
+                document.getElementById('mpPrevUrl').textContent = 'URL: ' + urlDe(cientifico.value);
+            } else {
+                document.getElementById('mpPrevUrl').textContent = 'URL: ' + urlDe(cientifico.value);
+            }
+
+            const contenedorTags = document.getElementById('mpPrevTags');
+            contenedorTags.innerHTML = '';
+            etiquetasSeleccionadas().forEach(texto => {
+                const chip = document.createElement('span');
+                chip.className = 'pcard-tag';
+                chip.textContent = texto;
+                contenedorTags.appendChild(chip);
+            });
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('mpPreviewModal')).show();
+        }
+
+        inputImagenes.addEventListener('change', () => {
+            Array.from(inputImagenes.files || []).forEach(file => {
+                if (file.type && file.type.startsWith('image/')) {
+                    imagenes.push({ file, url: URL.createObjectURL(file) });
+                }
+            });
+            inputImagenes.value = '';
+            sincronizarInput();
+            renderThumbs();
+            limpiarError();
+        });
+        checkboxes().forEach(c => {
+            c.addEventListener('change', () => {
+                const group = c.closest('.mp-pub-group');
+                if (group && group.dataset.single === 'true' && c.checked) {
+                    group.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                        if (cb !== c) cb.checked = false;
+                    });
+                }
+                actualizarEtiquetas();
+            });
+        });
+        if (cientifico) cientifico.addEventListener('input', actualizarUrl);
+        document.getElementById('mpVistaPrevia').addEventListener('click', abrirVistaPrevia);
+        document.getElementById('mpPublicarDesdePreview').addEventListener('click', () => form.requestSubmit());
+
+        form.addEventListener('submit', (e) => {
+            limpiarError();
+            sincronizarInput();
+            if (imagenes.length < 2) {
+                e.preventDefault();
+                mostrarError('Tenés que cargar al menos 2 imágenes para publicar.');
+                inputImagenes.focus();
+                return;
+            }
+            if (!nombre.value.trim()) {
+                e.preventDefault();
+                mostrarError('El nombre común es obligatorio.');
+                nombre.focus();
+                return;
+            }
+            if (!precio.value || Number(precio.value) <= 0) {
+                e.preventDefault();
+                mostrarError('El precio debe ser mayor a 0.');
+                precio.focus();
+                return;
+            }
+            if (!stock.value || Number(stock.value) < 10) {
+                e.preventDefault();
+                mostrarError('El stock mínimo para publicar es de 10 unidades.');
+                stock.focus();
+            }
+        });
+
+        actualizarEtiquetas();
+        actualizarUrl();
+    })();
+</script>
+</body>
+</html>

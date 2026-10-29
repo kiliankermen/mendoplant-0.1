@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Contenido del sitio')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4" style="max-width: 640px;">
+    <h1 class="mb-4">Contenido del Home y Términos</h1>
+    <form th:action="@{/admin/contenido}" method="post">
+        <div class="mb-3">
+            <label class="form-label">Título del Home</label>
+            <input type="text" name="homeTitle" th:value="${homeTitle}" class="form-control"/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Subtítulo del Home</label>
+            <input type="text" name="homeSubtitle" th:value="${homeSubtitle}" class="form-control"/>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Texto del banner</label>
+            <textarea name="homeBanner" class="form-control" rows="2" th:text="${homeBanner}"></textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Términos y condiciones</label>
+            <textarea name="terminos" class="form-control" rows="6" th:text="${terminos}"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Guardar cambios</button>
+    </form>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

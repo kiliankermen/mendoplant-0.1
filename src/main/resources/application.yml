@@ -1,0 +1,125 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: mendo-plant
+
+
+
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+  # ---------------------------------------------------------------------
+  # MySQL (XAMPP). IMPORTANTE:
+  #   - La app SOLO actúa como cliente del MySQL que ya corre en 127.0.0.1:3306.
+  #     No levanta un proceso propio en ese puerto, no lo reconfigura y nunca
+  #     toca los esquemas internos de XAMPP (mysql, sys, information_schema, etc).
+  #   - createDatabaseIfNotExist=true emite únicamente un "CREATE DATABASE IF NOT
+  #     EXISTS mendoplant_01" al conectar. Nadie más se ve afectado.
+  #   - Credenciales por variables de entorno (defaults de XAMPP: root sin password).
+  # ---------------------------------------------------------------------
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/mendoplant_01?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Argentina/Mendoza&characterEncoding=utf8&connectionCollation=utf8mb4_unicode_ci
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:}
+
+  # ---------------------------------------------------------------------
+  # Flyway gestiona el esquema (ddl-auto=none): migraciones versionadas en
+  # classpath:db/migration. El seed de datos vive en V2__datos_iniciales.sql.
+  # ---------------------------------------------------------------------
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    validate-on-migrate: true
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: true
+
+  # ---------------------------------------------------------------------
+  # Envío de email (SMTP) para los códigos de verificación del registro.
+  # Las credenciales van SIEMPRE por variables de entorno (nunca en el repo).
+  #   MAIL_HOST=empresa.cliente:465 | smtp.gmail.com | etc.
+  # Si MAIL_HOST está vacío, la app NO intenta conectar a ningún servidor:
+  # imprime el código en la consola (modo desarrollo, útil para probar).
+  # ---------------------------------------------------------------------
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USER:}
+    password: ${MAIL_PASSWORD:}
+    from: ${MAIL_FROM:Plant Finder <no-responder@plant_finder.local>}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: false
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+  thymeleaf:
+    cache: false
+
+logging:
+  level:
+    com.mendoplant: DEBUG
+    org.springframework.security: INFO
+
+app:
+  upload-dir: uploads
+
+  # ---------------------------------------------------------------------
+  # URL pública con la que la app es alcanzable desde internet (la usa
+  # Mercado Pago para back_urls y notification_url). En desarrollo podés
+  # usar un túnel (ngrok/cloudflared); en producción, tu dominio.
+  # ---------------------------------------------------------------------
+  url-publica: ${URL_PUBLICA:http://localhost:8080}
+
+  # ---------------------------------------------------------------------
+  # Mercado Pago (Checkout Pro). Las credenciales van SIEMPRE por variables
+  # de entorno, nunca en el repo.
+  #   MP_ACCESS_TOKEN: Access Token de la aplicación (cuentas de prueba en sandbox).
+  #   MP_SANDBOX=true  : usa sandbox_init_point (modo test).
+  # Si MP_ACCESS_TOKEN está vacío, el checkout cae al flujo simulado (sin pago real).
+  # ---------------------------------------------------------------------
+  mercadopago:
+    access-token: ${MP_ACCESS_TOKEN:}
+    sandbox: ${MP_SANDBOX:true}
+
+  # ---------------------------------------------------------------------
+  # Envíos. Tarifa plana ($) y umbral de envío gratis sobre el subtotal de
+  # productos. ENVIO_TARIFA_PLANA=0 => envío gratis siempre. El umbral de
+  # envío gratis se lee de la tabla site_config (clave ENVIO_GRATIS_DESDE);
+  # este valor es solo el respaldo si la fila no existe.
+  # ---------------------------------------------------------------------
+  envio:
+    tarifa-plana: ${ENVIO_TARIFA_PLANA:0}
+    gratis-desde: ${ENVIO_GRATIS_DESDE:90000}
+
+  # ---------------------------------------------------------------------
+  # Facturación (CFE local por defecto).
+  #   proveedor: local | afip (afip requiere integración WSAA/WSFEv1 pendiente).
+  #   letra: C (monotributo, no discrimina IVA) o A (discrimina IVA 21%).
+  # ---------------------------------------------------------------------
+  facturacion:
+    proveedor: ${FACTURACION_PROVEEDOR:local}
+    punto-venta: ${FACTURACION_PUNTO_VENTA:1}
+    letra: ${FACTURACION_LETRA:C}
+    cuit: ${FACTURACION_CUIT:}
+    razon-social: ${FACTURACION_RAZON_SOCIAL:Mendo Plant}
+    domicilio: ${FACTURACION_DOMICILIO:Mendoza, Argentina}
+    condicion-fiscal: ${FACTURACION_CONDICION:Monotributista}
+
+

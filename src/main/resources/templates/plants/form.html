@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${modoEdicion} ? 'Editar planta' : 'Publicar planta')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container my-4" style="max-width: 640px;">
+    <h1 class="mb-4" th:text="${modoEdicion} ? 'Editar planta' : 'Publicar una planta'">Publicar</h1>
+
+    <form th:action="${modoEdicion} ? @{/plantas/editar/{id}(id=${plantaDto.id})} : @{/dashboard/publicar-planta}"
+          th:object="${plantaDto}" method="post" enctype="multipart/form-data">
+
+        <input type="hidden" th:field="*{id}"/>
+
+        <div class="mb-3">
+            <label class="form-label">Nombre común</label>
+            <input type="text" th:field="*{nombreComun}" class="form-control"/>
+            <div class="text-danger small" th:if="${#fields.hasErrors('nombreComun')}" th:errors="*{nombreComun}"></div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Nombre científico</label>
+            <input type="text" th:field="*{nombreCientifico}" class="form-control"/>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea th:field="*{descripcion}" class="form-control" rows="4"></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Precio</label>
+                <input type="number" step="0.01" th:field="*{precio}" class="form-control"/>
+                <div class="text-danger small" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}"></div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Stock</label>
+                <input type="number" th:field="*{stock}" class="form-control"/>
+                <div class="text-danger small" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Imagen</label>
+            <input type="file" name="imagenFile" accept="image/*" class="form-control"/>
+            <div class="text-danger small" th:if="${imagenError}" th:text="${imagenError}"></div>
+            <div class="text-muted small mt-1"
+                 th:if="${modoEdicion and !#strings.isEmpty(plantaDto.imagenUrl)}">
+                Imagen actual (dejá el campo vacío para conservarla):
+                <img th:src="${@imageStorageService.imagenPlanta(plantaDto.id, plantaDto.imagenUrl)}" alt="Imagen actual"
+                     style="height:90px; border-radius:8px; display:block; margin-top:6px;"/>
+            </div>
+            <div class="text-muted small mt-1" th:unless="${modoEdicion}">
+                Sin imagen se mostrará el marcador de la tienda. Formatos: JPG, PNG, WebP, GIF o SVG (máx. 5MB).
+            </div>
+        </div>
+
+        <!-- Atributos: cada campo es un desplegable con casillas y admite
+             varias etiquetas a la vez (se pueden marcar varias opciones). -->
+        <div class="row">
+            <div class="col-md-6 mb-3" th:each="g : ${gruposFormulario}">
+                <label class="form-label" th:text="${g.titulo}">Atributo</label>
+                <div class="mp-multiselect">
+                    <button type="button" class="mp-multiselect-btn" th:attr="data-campo=${g.campo}"
+                            aria-expanded="false">
+                        <span class="mp-multiselect-texto" data-texto="Todos">Todos</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="mp-multiselect-menu">
+                        <label class="mp-multiselect-opcion" th:each="o : ${g.opciones}">
+                            <input type="checkbox" th:name="${g.campo}" th:value="${o.valor}"
+                                   th:checked="${o.seleccionado}"/>
+                            <span class="mp-multiselect-label" th:text="${o.etiqueta}">Opción</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="text-danger small" th:if="${#fields.hasErrors(${g.campo})}"
+                     th:errors="*{__${g.campo}__}"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" th:field="*{esCombo}"/>
+                    <label class="form-check-label">Es un combo</label>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-mp">Guardar</button>
+    </form>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

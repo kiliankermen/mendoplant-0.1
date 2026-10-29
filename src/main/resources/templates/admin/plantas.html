@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Categorías de portada')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4">
+    <h1 class="mb-2">Publicaciones y categorías de portada</h1>
+    <p class="text-muted mb-4">
+        Acá decidís qué plantas aparecen en la <strong>página principal</strong>: asignales una categoría
+        (p. ej. "Plantas", "Interior", "Exterior"...). Las plantas <strong>sin categoría</strong> solo aparecen
+        en el catálogo y no se muestran en la portada bajo el filtro por defecto.
+        Los vendedores ya no eligen la categoría al publicar.
+    </p>
+
+    <table class="table table-striped align-middle" id="tablaPlantas">
+        <thead>
+        <tr>
+            <th>Planta</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Categoría actual</th>
+            <th>Asignar</th>
+            <th>Eliminar</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${plantas}">
+            <td th:text="${p.nombreComun}"></td>
+            <td th:text="'$' + ${p.precio}"></td>
+            <td th:text="${p.stock}"></td>
+            <td>
+                <span class="badge bg-success" th:if="${p.categoria != null}" th:text="${p.categoria.nombre}">Interior</span>
+                <span class="badge bg-warning text-dark" th:if="${p.categoria == null}">Sin categoría (solo catálogo)</span>
+            </td>
+            <td>
+                <form th:action="@{/admin/plantas/{id}/categoria(id=${p.id})}" method="post" class="d-flex gap-1">
+                    <select name="categoriaId" class="form-select form-select-sm">
+                        <option value="">— Sin categoría —</option>
+                        <option th:each="c : ${categorias}" th:value="${c.id}" th:text="${c.nombre}"
+                                th:selected="${p.categoria != null and p.categoria.id == c.id}"></option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Asignar</button>
+                </form>
+            </td>
+            <td>
+                <form th:action="@{/admin/plantas/{id}/eliminar(id=${p.id})}" method="post"
+                      onsubmit="return confirm('¿Eliminar «[[${p.nombreComun}]]»? La planta dejará de estar disponible (borrado lógico).');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar (soft delete)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

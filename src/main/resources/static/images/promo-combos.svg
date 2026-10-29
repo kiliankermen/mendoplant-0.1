@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="520" viewBox="0 0 920 520">
+  <defs>
+    <g id="maceta">
+      <rect x="145" y="250" width="180" height="34" rx="12" fill="#e6d9f7"/>
+      <path d="M162 284 L308 284 L282 436 L188 436 Z" fill="#ffffff"/>
+      <path d="M162 284 L308 284 L282 436 L188 436 Z" fill="none" stroke="#5b34a0" stroke-width="5" opacity="0.4"/>
+    </g>
+  </defs>
+
+  <rect width="920" height="520" fill="#6b3fb5"/>
+
+  <ellipse cx="226" cy="452" rx="100" ry="12" fill="#4d2b85" opacity="0.45"/>
+  <ellipse cx="693" cy="452" rx="100" ry="12" fill="#4d2b85" opacity="0.45"/>
+
+  <line x1="226" y1="255" x2="226" y2="132" stroke="#248a50" stroke-width="9" stroke-linecap="round"/>
+
+  <g>
+    <ellipse cx="185" cy="225" rx="60" ry="20" transform="rotate(-38 185 225)" fill="#39b46a"/>
+    <ellipse cx="272" cy="230" rx="55" ry="20" transform="rotate(30 272 230)" fill="#2f9e63"/>
+    <ellipse cx="175" cy="185" rx="48" ry="17" transform="rotate(-65 175 185)" fill="#6fd49b"/>
+    <ellipse cx="255" cy="178" rx="45" ry="17" transform="rotate(70 255 178)" fill="#39b46a"/>
+    <ellipse cx="226" cy="145" rx="42" ry="15" fill="#2f9e63"/>
+    <ellipse cx="198" cy="262" rx="40" ry="15" transform="rotate(-85 198 262)" fill="#6fd49b"/>
+    <ellipse cx="264" cy="262" rx="38" ry="14" transform="rotate(80 264 262)" fill="#39b46a"/>
+  </g>
+
+  <use href="#maceta" transform="translate(0 0)"/>
+
+  <g>
+    <rect x="669" y="135" width="50" height="160" rx="22" fill="#39b46a"/>
+    <rect x="632" y="200" width="36" height="110" rx="18" fill="#2f9e63"/>
+    <rect x="712" y="220" width="36" height="95" rx="18" fill="#2f9e63"/>
+    <line x1="694" y1="170" x2="694" y2="270" stroke="#1f7a4a" stroke-width="3" opacity="0.7"/>
+    <line x1="650" y1="225" x2="650" y2="285" stroke="#1f7a4a" stroke-width="3" opacity="0.7"/>
+    <line x1="730" y1="245" x2="730" y2="290" stroke="#1f7a4a" stroke-width="3" opacity="0.7"/>
+    <circle cx="694" cy="128" r="17" fill="#ff8fb3"/>
+    <circle cx="694" cy="128" r="8" fill="#ffe3ef"/>
+  </g>
+
+  <use href="#maceta" transform="translate(467 0)"/>
+
+  <g fill="#ffffff" opacity="0.95">
+    <rect x="430" y="255" width="60" height="40" rx="12"/>
+    <rect x="450" y="235" width="20" height="80" rx="10"/>
+  </g>
+</svg>

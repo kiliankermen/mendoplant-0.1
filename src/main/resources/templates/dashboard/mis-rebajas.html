@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis rebajas')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container-fluid my-4">
+    <div class="mp-dash-layout">
+        <div th:replace="~{fragments/dashboard :: sidebar(${seccion})}"></div>
+
+        <main class="mp-dash-main">
+            <div class="mp-dash-title">
+                <div>
+                    <h1>Mis rebajas</h1>
+                    <p class="text-muted mb-0">Paquetes y rebajas activas.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-success" th:if="${ok}" th:text="${ok}"></div>
+            <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+            <section class="mp-dash-card mp-rebaja-paquetes">
+                <div class="mp-dash-card-head">
+                    <div>
+                        <h2>Paquetes y rebajas activas</h2>
+                        <p class="text-muted small mb-0">Cada paquete con sus productos y controles de porcentaje.</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a th:href="@{/} + '#promociones'" target="_blank" rel="noopener"
+                           class="btn btn-sm btn-outline-secondary">Ir a promociones</a>
+                        <span class="mp-dash-chip" th:text="${#lists.size(rebajas)} + ' activas'">0 activas</span>
+                    </div>
+                </div>
+
+                <div class="mp-rebaja-paquete-grid" th:if="${!#lists.isEmpty(rebajas)}">
+                    <article class="mp-rebaja-paquete" th:each="r : ${rebajas}">
+                        <div class="mp-rebaja-active-row">
+                            <div class="mp-rebaja-active-info">
+                                <form class="mp-rebaja-name-form"
+                                      th:id="${'mpRebajaNombreForm-' + r.id}"
+                                      th:action="@{/dashboard/promociones/rebajas/{id}/datos(id=${r.id})}"
+                                      method="post">
+                                    <div class="mp-rebaja-name-line">
+                                        <label class="mp-rebaja-name-field">
+                                            <input type="text" name="nombre" class="mp-rebaja-name-input"
+                                                   th:value="${r.nombre}" maxlength="120" required
+                                                   th:attr="size=${#strings.length(r.nombre) > 20 ? 28 : (#strings.length(r.nombre) < 10 ? 12 : #strings.length(r.nombre) + 2)}"
+                                                   aria-label="Nombre de la promoción"
+                                                   title="Tocá para cambiar el nombre"/>
+                                            <i class="bi bi-pencil-fill mp-rebaja-name-icon" aria-hidden="true"></i>
+                                        </label>
+                                        <small class="mp-rebaja-name-original">
+                                            Original: <span th:text="${r.nombre}">Nombre original</span>
+                                        </small>
+                                    </div>
+
+                                    <span class="mp-rebaja-meta text-muted small">
+                                        <span th:text="${r.plantas.size()} + ' producto(s)'">0 productos</span>
+                                        <span th:if="${r.plantas.size() == 1}"> · individual (sin cartel en portada)</span>
+                                        <span th:if="${r.plantas.size() > 1}"> · paquete en portada</span>
+                                    </span>
+
+                                    <div class="mp-rebaja-extra-fields">
+                                        <div class="mp-rebaja-extra-field">
+                                            <label class="form-label"
+                                                   th:for="${'mpRebajaDescripcion-' + r.id}">Descripción</label>
+                                            <input type="text" name="descripcion"
+                                                   class="form-control form-control-sm"
+                                                   th:id="${'mpRebajaDescripcion-' + r.id}"
+                                                   th:value="${r.descripcion}" maxlength="100"
+                                                   placeholder="Descripción que se muestra en la portada"
+                                                   autocomplete="off"/>
+                                        </div>
+                                        <div class="mp-rebaja-extra-field mp-rebaja-extra-color">
+                                            <label class="form-label"
+                                                   th:for="${'mpRebajaColor-' + r.id}">Color del banner</label>
+                                            <input type="color" name="colorBanner"
+                                                   class="form-control form-control-color mp-rebaja-color-input"
+                                                   th:id="${'mpRebajaColor-' + r.id}"
+                                                   th:value="${r.colorBanner != null ? r.colorBanner : '#2f7d45'}"
+                                                   title="Color del banner en la portada"/>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="mp-rebaja-active-actions">
+                                <form class="mp-rebaja-active-form"
+                                      th:action="@{/dashboard/promociones/rebajas/{id}/porcentaje(id=${r.id})}"
+                                      method="post">
+                                    <label class="form-label" th:for="${'mpRebajaPorcentaje-' + r.id}">Descuento</label>
+                                    <div class="input-group">
+                                        <input type="number" name="porcentaje" class="form-control"
+                                               th:id="${'mpRebajaPorcentaje-' + r.id}"
+                                               min="1" max="90" step="1" required th:value="${r.porcentaje}"/>
+                                        <span class="input-group-text">%</span>
+                                        <button type="submit" class="btn btn-mp">Actualizar</button>
+                                    </div>
+                                </form>
+
+                                <div class="mp-rebaja-active-buttons">
+                                    <button type="submit" class="btn btn-sm btn-mp mp-rebaja-save-name"
+                                            th:attr="form=${'mpRebajaNombreForm-' + r.id}" disabled>
+                                        <i class="bi bi-check2 me-1"></i>Guardar cambios
+                                    </button>
+                                    <form th:action="@{/dashboard/promociones/rebajas/{id}/eliminar(id=${r.id})}"
+                                          method="post"
+                                          onsubmit="return confirm('¿Eliminar este paquete de promociones?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash me-1"></i>Eliminar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mp-rebaja-paquete-cards">
+                            <div class="col-xxl-3 col-xl-4 col-lg-6 col-12" th:each="p : ${r.plantas}">
+                                <div class="mp-rebaja-store-card">
+                                    <div th:replace="~{fragments/layout :: card(${p})}"></div>
+                                    <form th:action="@{/dashboard/promociones/rebajas/{id}/plantas/{plantaId}/eliminar(id=${r.id}, plantaId=${p.id})}"
+                                          method="post"
+                                          onsubmit="return confirm('¿Quitar esta planta de la promoción?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                            <i class="bi bi-x-circle me-1"></i>Quitar de la promoción
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="col-xxl-3 col-xl-4 col-lg-6 col-12">
+                                <button type="button" class="mp-rebaja-add-card"
+                                        data-bs-toggle="modal" data-bs-target="#mpAgregarPlantaModal"
+                                        th:attr="data-promo-id=${r.id}, data-promo-nombre=${r.nombre}"
+                                        title="Añadir otra planta a este paquete"
+                                        aria-label="Añadir otra planta a este paquete">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <p class="text-muted mb-0" th:if="${#lists.isEmpty(rebajas)}">
+                    Todavía no tenés rebajas activas. Creá una desde la sección Rebajas.
+                </p>
+            </section>
+            <div id="mpRebajaGrid" class="d-none" aria-hidden="true">
+                <label class="mp-select-card" th:each="p : ${productos}"
+                       th:attr="data-nombre=${p.nombreComun + ' ' + p.nombreCientifico}">
+                    <input type="checkbox" name="productos" th:value="${p.id}"/>
+                    <img th:src="${@imageStorageService.imagenPlanta(p.id, p.imagenUrl)}" alt=""
+                         onerror="this.onerror=null;this.src='/images/placeholder-planta.svg'"/>
+                    <strong class="mp-select-name" th:text="${p.nombreComun}">Producto</strong>
+                    <span class="text-muted small mp-select-price" th:text="'$' + ${p.precio}">$0</span>
+                </label>
+            </div>
+        </main>
+    </div>
+</div>
+
+<div class="modal fade" id="mpCambiosSinGuardarModal" tabindex="-1"
+     aria-labelledby="mpCambiosSinGuardarTitulo" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="mpCambiosSinGuardarTitulo">Tienes cambios sin guardar</h2>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Si salís ahora, los cambios en los datos de la promoción se perderán.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="mpDescartarCambios">Descartar cambios</button>
+                <button type="button" class="btn btn-mp" id="mpGuardarCambios">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="mpAgregarPlantaModal" tabindex="-1"
+     aria-labelledby="mpAgregarPlantaTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <form id="mpAgregarPlantaForm" method="post">
+                <input type="hidden" name="_csrf" th:value="${_csrf != null ? _csrf.token : ''}"/>
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title fs-5" id="mpAgregarPlantaTitulo">Añadir planta al paquete</h2>
+                        <p class="text-muted small mb-0" id="mpAgregarPlantaInfo"></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mp-select-grid" id="mpAgregarPlantaGrid"></div>
+                    <p class="text-muted mb-0" id="mpAgregarPlantaVacio" hidden>
+                        No hay productos disponibles para agregar a este paquete.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-mp" id="mpAgregarPlantaSubmit" disabled>
+                        <i class="bi bi-plus-lg me-1"></i>Añadir al paquete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script>
+    (function () {
+        const grid = document.getElementById('mpRebajaGrid');
+
+        const modalAgregar = document.getElementById('mpAgregarPlantaModal');
+        const formAgregar = document.getElementById('mpAgregarPlantaForm');
+        const gridAgregar = document.getElementById('mpAgregarPlantaGrid');
+        const infoAgregar = document.getElementById('mpAgregarPlantaInfo');
+        const vacioAgregar = document.getElementById('mpAgregarPlantaVacio');
+        const submitAgregar = document.getElementById('mpAgregarPlantaSubmit');
+        let promoAgregarId = null;
+
+        function crearCartaModal(carta) {
+            const check = carta.querySelector('input[name="productos"]');
+            if (!check) return null;
+            const boton = document.createElement('button');
+            boton.type = 'button';
+            boton.className = 'mp-select-card mp-modal-product';
+            boton.dataset.plantaId = check.value;
+
+            const foto = document.createElement('img');
+            const fotoOriginal = carta.querySelector('img');
+            foto.src = fotoOriginal.currentSrc || fotoOriginal.src;
+            foto.alt = '';
+
+            const nombre = document.createElement('strong');
+            nombre.className = 'mp-select-name';
+            nombre.textContent = carta.querySelector('.mp-select-name').textContent;
+
+            const precio = document.createElement('span');
+            precio.className = 'text-muted small mp-select-price';
+            precio.textContent = carta.querySelector('.mp-select-price').textContent;
+
+            boton.append(foto, nombre, precio);
+            boton.addEventListener('click', () => {
+                gridAgregar.querySelectorAll('.mp-modal-product')
+                    .forEach(b => b.classList.remove('is-active'));
+                boton.classList.add('is-active');
+                submitAgregar.disabled = false;
+                formAgregar.action = '/dashboard/promociones/rebajas/' + promoAgregarId
+                    + '/plantas/' + check.value + '/agregar';
+            });
+            return boton;
+        }
+
+        if (modalAgregar && formAgregar && gridAgregar) {
+            modalAgregar.addEventListener('show.bs.modal', event => {
+                const disparador = event.relatedTarget;
+                if (!disparador) return;
+                promoAgregarId = disparador.dataset.promoId;
+                infoAgregar.textContent = 'Elegí una planta para "' + (disparador.dataset.promoNombre || '')
+                    + '". Solo se muestran plantas que no están en otro paquete.';
+                gridAgregar.innerHTML = '';
+                submitAgregar.disabled = true;
+                formAgregar.removeAttribute('action');
+
+                const disponibles = grid ? Array.from(grid.querySelectorAll('.mp-select-card')).filter(carta =>
+                    !carta.classList.contains('is-en-promocion') && !carta.classList.contains('is-selected')
+                ) : [];
+                disponibles.forEach(carta => {
+                    const nueva = crearCartaModal(carta);
+                    if (nueva) gridAgregar.appendChild(nueva);
+                });
+                vacioAgregar.hidden = disponibles.length > 0;
+            });
+        }
+
+        let guardandoNombre = false;
+        const modalCambiosEl = document.getElementById('mpCambiosSinGuardarModal');
+        const modalCambios = modalCambiosEl ? new bootstrap.Modal(modalCambiosEl) : null;
+        const botonGuardarCambios = document.getElementById('mpGuardarCambios');
+        const botonDescartarCambios = document.getElementById('mpDescartarCambios');
+        let accionPendiente = null;
+
+        document.querySelectorAll('.mp-rebaja-name-form').forEach(form => {
+            const campos = Array.from(form.querySelectorAll('input:not([type="hidden"])'));
+            if (!campos.length) return;
+            const originales = new Map(campos.map(campo => [campo, campo.value]));
+            form.mpOriginales = originales;
+            const boton = document.querySelector('button[form="' + form.id + '"]');
+
+            const actualizarEstado = () => {
+                const sucio = campos.some(campo =>
+                    campo.value.trim() !== (originales.get(campo) || '').trim());
+                form.classList.toggle('is-dirty', sucio);
+                if (boton) boton.disabled = !sucio;
+            };
+            form.addEventListener('input', actualizarEstado);
+            form.addEventListener('change', actualizarEstado);
+            form.addEventListener('submit', () => {
+                guardandoNombre = true;
+            });
+            actualizarEstado();
+        });
+
+        function formulariosSucios() {
+            return Array.from(document.querySelectorAll('.mp-rebaja-name-form.is-dirty'));
+        }
+
+        function hayCambiosNombre() {
+            return formulariosSucios().length > 0;
+        }
+
+        function descartarCambiosNombre() {
+            formulariosSucios().forEach(form => {
+                const campos = form.querySelectorAll('input:not([type="hidden"])');
+                campos.forEach(campo => {
+                    if (form.mpOriginales && form.mpOriginales.has(campo)) {
+                        campo.value = form.mpOriginales.get(campo);
+                    }
+                });
+                form.dispatchEvent(new Event('input', {bubbles: true}));
+            });
+        }
+
+        function ejecutarAccionPendiente() {
+            if (accionPendiente) accionPendiente();
+        }
+
+        if (modalCambios) {
+            document.addEventListener('click', event => {
+                const enlace = event.target.closest('a[href]');
+                if (!enlace || !hayCambiosNombre() || guardandoNombre) return;
+                if (enlace.target === '_blank' || enlace.hasAttribute('download')
+                    || enlace.dataset.bsToggle
+                    || (enlace.getAttribute('href') || '').startsWith('#')) {
+                    return;
+                }
+                event.preventDefault();
+                accionPendiente = () => { window.location.href = enlace.href; };
+                modalCambios.show();
+            }, true);
+
+            document.addEventListener('submit', event => {
+                const formulario = event.target;
+                if (!hayCambiosNombre() || guardandoNombre
+                    || formulario.classList.contains('mp-rebaja-name-form')) {
+                    return;
+                }
+                event.preventDefault();
+                const submitter = event.submitter || null;
+                accionPendiente = () => {
+                    if (submitter && formulario.requestSubmit) {
+                        formulario.requestSubmit(submitter);
+                    } else {
+                        formulario.submit();
+                    }
+                };
+                modalCambios.show();
+            }, true);
+
+            botonDescartarCambios.addEventListener('click', () => {
+                descartarCambiosNombre();
+                modalCambios.hide();
+                guardandoNombre = true;
+                ejecutarAccionPendiente();
+            });
+
+            botonGuardarCambios.addEventListener('click', async () => {
+                const formularios = formulariosSucios();
+                if (!formularios.length) {
+                    modalCambios.hide();
+                    guardandoNombre = true;
+                    ejecutarAccionPendiente();
+                    return;
+                }
+                const textoOriginal = botonGuardarCambios.innerHTML;
+                botonGuardarCambios.disabled = true;
+                botonDescartarCambios.disabled = true;
+                botonGuardarCambios.textContent = 'Guardando...';
+                try {
+                    for (const formulario of formularios) {
+                        const respuesta = await fetch(formulario.action, {
+                            method: 'POST',
+                            body: new FormData(formulario),
+                            credentials: 'same-origin'
+                        });
+                        if (!respuesta.ok) {
+                            throw new Error('No se pudieron guardar los datos (' + respuesta.status + ').');
+                        }
+                    }
+                    modalCambios.hide();
+                    guardandoNombre = true;
+                    ejecutarAccionPendiente();
+                } catch (error) {
+                    console.error(error);
+                    alert('No se pudieron guardar los cambios. Intentá de nuevo.');
+                    botonGuardarCambios.disabled = false;
+                    botonDescartarCambios.disabled = false;
+                    botonGuardarCambios.innerHTML = textoOriginal;
+                }
+            });
+
+            window.addEventListener('beforeunload', event => {
+                if (hayCambiosNombre() && !guardandoNombre) {
+                    event.preventDefault();
+                    event.returnValue = '';
+                }
+            });
+        }
+    })();
+</script>
+</body>
+</html>

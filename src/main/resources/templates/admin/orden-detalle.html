@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pedido #' + ${orden.id})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4" style="max-width: 980px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Pedido #<span th:text="${orden.id}"></span></h1>
+        <a th:href="@{/admin/ordenes}" class="btn btn-outline-success">Volver a pedidos</a>
+    </div>
+
+    <div class="alert alert-success" th:if="${param.ok}" th:text="'Acción realizada correctamente.'"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card mb-3">
+                <div class="card-header">Resumen</div>
+                <div class="card-body">
+                    <p class="mb-1">
+                        <strong>Fecha:</strong>
+                        <span th:text="${#temporals.format(orden.fecha, 'dd/MM/yyyy HH:mm')}"></span>
+                    </p>
+                    <p class="mb-1">
+                        <strong>Estado:</strong>
+                        <span th:if="${orden.estado.name() == 'COMPLETADO'}" class="badge bg-success" th:text="${orden.estado}"></span>
+                        <span th:if="${orden.estado.name() == 'PENDIENTE'}" class="badge bg-warning text-dark" th:text="${orden.estado}"></span>
+                        <span th:if="${orden.estado.name() == 'CANCELADO'}" class="badge bg-danger" th:text="${orden.estado}"></span>
+                    </p>
+                    <p class="mb-1">
+                        <strong>Comprador:</strong> <span th:text="${orden.comprador.nombre}"></span>
+                        (<span th:text="${orden.comprador.email}"></span>)
+                    </p>
+                    <p class="mb-1"><strong>Pago:</strong> <span th:text="${orden.paymentStatus ?: '—'}"></span></p>
+                    <p class="mb-0"><strong>Preferencia MP:</strong> <code th:text="${orden.preferenceId ?: '—'}"></code></p>
+
+                    <table class="table mt-3">
+                        <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead>
+                        <tbody>
+                        <tr th:each="item : ${orden.items}">
+                            <td th:text="${item.plant.nombreComun}"></td>
+                            <td th:text="${item.cantidad}"></td>
+                            <td th:text="'$' + ${item.precioUnitario}"></td>
+                            <td th:text="'$' + ${item.getSubtotal()}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>Total</span>
+                        <span th:text="'$' + ${orden.total}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3" th:if="${envio != null}">
+                <div class="card-header">Envío</div>
+                <div class="card-body">
+                    <p class="mb-1">
+                        <strong>Estado:</strong>
+                        <span th:switch="${envio.estado}">
+                            <span th:case="${T(com.mendoplant.app.model.EstadoEnvio).ENTREGADO}" class="badge bg-success" th:text="${envio.estado}"></span>
+                            <span th:case="${T(com.mendoplant.app.model.EstadoEnvio).ENVIADO}" class="badge bg-info text-dark" th:text="${envio.estado}"></span>
+                            <span th:case="${T(com.mendoplant.app.model.EstadoEnvio).PREPARADO}" class="badge bg-primary text-white" th:text="${envio.estado}"></span>
+                            <span th:case="${T(com.mendoplant.app.model.EstadoEnvio).CANCELADO}" class="badge bg-danger" th:text="${envio.estado}"></span>
+                            <span th:case="*" class="badge bg-secondary" th:text="${envio.estado}"></span>
+                        </span>
+                    </p>
+                    <p class="mb-1">
+                        <strong>Destinatario:</strong> <span th:text="${envio.receptorNombre}"></span>
+                        <span th:if="${envio.telefono}" th:text="' · ' + ${envio.telefono}"></span>
+                    </p>
+                    <p class="mb-1"><strong>Dirección:</strong>
+                        <span th:text="${envio.calleNumero}"></span>
+                        <span th:if="${envio.depto}" th:text="', ' + ${envio.depto}"></span> —
+                        <span th:text="${envio.ciudad} + ', ' + ${envio.provincia}"></span>
+                        <span th:if="${envio.codigoPostal}" th:text="(' CP ' + ${envio.codigoPostal})"></span>
+                    </p>
+                    <p class="mb-1"><strong>Costo:</strong> <span th:text="'$' + ${envio.costo}"></span>
+                        <span th:if="${envio.transportista}" th:text="' · ' + ${envio.transportista}"></span>
+                    </p>
+                    <p class="mb-0" th:if="${envio.tracking}"><strong>Tracking:</strong> <span th:text="${envio.tracking}"></span></p>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">Factura</div>
+                <div class="card-body">
+                    <div th:if="${factura != null}">
+                        <p class="mb-1">
+                            N° <strong th:text="${factura.numero}"></strong> (Letra
+                            <span th:text="${factura.letra}"></span>) —
+                            <span th:if="${factura.estado == 'FACTURADA'}" class="badge bg-success">FACTURADA</span>
+                            <span th:if="${factura.estado == 'ANULADA'}" class="badge bg-danger">ANULADA</span>
+                        </p>
+                        <form th:action="@{/admin/facturas/{id}/anular(id=${factura.id})}" method="post"
+                              class="d-inline" onsubmit="return confirm('¿Anular esta factura?');">
+                            <button class="btn btn-sm btn-outline-danger">Anular</button>
+                        </form>
+                    </div>
+                    <div th:if="${factura == null}">
+                        <p class="text-muted mb-2">Aún no se emitió factura para esta orden.</p>
+                        <form th:action="@{/admin/ordenes/{id}/facturar(id=${orden.id})}" method="post">
+                            <button class="btn btn-sm btn-success" th:if="${orden.estado.name() == 'COMPLETADO'}">Emitir factura</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card mb-3">
+                <div class="card-header">Estado del pedido</div>
+                <div class="card-body">
+                    <form th:action="@{/admin/ordenes/{id}/estado(id=${orden.id})}" method="post" class="d-flex gap-2">
+                        <select name="estado" class="form-select">
+                            <option th:each="e : ${estados}" th:value="${e}" th:text="${e}"
+                                    th:selected="${e == orden.estado}"></option>
+                        </select>
+                        <button class="btn btn-primary">Guardar</button>
+                    </form>
+                    <p class="small text-muted mt-2 mb-0">
+                        Solo se puede cancelar una orden pendiente de pago (se repone el stock).
+                    </p>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">Gestión de envío</div>
+                <div class="card-body" th:if="${envio != null}">
+                    <form th:action="@{/admin/ordenes/{id}/envio(id=${orden.id})}" method="post">
+                        <div class="mb-2">
+                            <label class="form-label small">Estado de despacho</label>
+                            <select name="estado" class="form-select">
+                                <option th:each="e : ${estadosEnvio}" th:value="${e}" th:text="${e}"
+                                        th:selected="${e == envio.estado}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">Transportista / correo</label>
+                            <input name="transportista" class="form-control" th:value="${envio.transportista}"
+                                   placeholder="Ej: Correo Argentino"/>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small">Tracking</label>
+                            <input name="tracking" class="form-control" th:value="${envio.tracking}"
+                                   placeholder="Código de seguimiento"/>
+                        </div>
+                        <button class="btn btn-primary w-100">Actualizar envío</button>
+                    </form>
+                </div>
+                <div class="card-body" th:if="${envio == null}">
+                    <p class="text-muted mb-0">Esta orden no tiene datos de envío.</p>
+                </div>
+            </div>
+
+            <div class="card mb-3" th:if="${orden.estado.name() == 'PENDIENTE'}">
+                <div class="card-header">Pago</div>
+                <div class="card-body">
+                    <form th:action="@{/admin/ordenes/{id}/verificar-pago(id=${orden.id})}" method="post">
+                        <button class="btn btn-outline-success w-100">Verificar pago en Mercado Pago</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

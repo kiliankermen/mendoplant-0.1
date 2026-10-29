@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<aside th:fragment="sidebar(activo)" class="mp-dash-sidebar">
+    <a th:href="@{/dashboard}" class="mp-dash-link" th:classappend="${activo == 'inicio'} ? 'active'">
+        <i class="bi bi-graph-up"></i> Inicio
+    </a>
+
+
+
+    <div class="mp-dash-group">CARGAR PRODUCTOS</div>
+    <div class="mp-dash-dropdown">
+        <button type="button" class="mp-dash-link mp-dash-toggle"
+                th:classappend="${activo == 'mis-plantas' || activo == 'publicar-planta'} ? 'active'"
+                data-bs-toggle="collapse" data-bs-target="#mpDashPlantas"
+                aria-controls="mpDashPlantas"
+                th:attr="aria-expanded=${activo == 'mis-plantas' || activo == 'publicar-planta'}">
+            <i class="bi bi-flower1"></i> Plantas
+            <i class="bi bi-chevron-down mp-dash-caret" aria-hidden="true"></i>
+        </button>
+        <div id="mpDashPlantas" class="collapse mp-dash-submenu"
+             th:classappend="${activo == 'mis-plantas' || activo == 'publicar-planta'} ? 'show'">
+            <a th:href="@{/dashboard/mis-plantas}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'mis-plantas'} ? 'active'">
+                Mis plantas
+            </a>
+            <a th:href="@{/dashboard/publicar-planta}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'publicar-planta'} ? 'active'">
+                Crear planta
+            </a>
+        </div>
+    </div>
+    <div class="mp-dash-dropdown">
+        <button type="button" class="mp-dash-link mp-dash-toggle"
+                th:classappend="${activo == 'mis-macetas' || activo == 'publicar-maceta'} ? 'active'"
+                data-bs-toggle="collapse" data-bs-target="#mpDashMacetas"
+                aria-controls="mpDashMacetas"
+                th:attr="aria-expanded=${activo == 'mis-macetas' || activo == 'publicar-maceta'}">
+            <i class="bi bi-bucket"></i> Macetas
+            <i class="bi bi-chevron-down mp-dash-caret" aria-hidden="true"></i>
+        </button>
+        <div id="mpDashMacetas" class="collapse mp-dash-submenu"
+             th:classappend="${activo == 'mis-macetas' || activo == 'publicar-maceta'} ? 'show'">
+            <a th:href="@{/dashboard/mis-macetas}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'mis-macetas'} ? 'active'">
+                Mis macetas
+            </a>
+            <a th:href="@{/dashboard/publicar-maceta}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'publicar-maceta'} ? 'active'">
+                Crear maceta
+            </a>
+        </div>
+    </div>
+    <div class="mp-dash-dropdown">
+        <button type="button" class="mp-dash-link mp-dash-toggle"
+                th:classappend="${activo == 'mis-soportes' || activo == 'publicar-soporte'} ? 'active'"
+                data-bs-toggle="collapse" data-bs-target="#mpDashSoportes"
+                aria-controls="mpDashSoportes"
+                th:attr="aria-expanded=${activo == 'mis-soportes' || activo == 'publicar-soporte'}">
+            <i class="bi bi-columns-gap"></i> Soportes
+            <i class="bi bi-chevron-down mp-dash-caret" aria-hidden="true"></i>
+        </button>
+        <div id="mpDashSoportes" class="collapse mp-dash-submenu"
+             th:classappend="${activo == 'mis-soportes' || activo == 'publicar-soporte'} ? 'show'">
+            <a th:href="@{/dashboard/mis-soportes}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'mis-soportes'} ? 'active'">
+                Mis soportes
+            </a>
+            <a th:href="@{/dashboard/publicar-soporte}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'publicar-soporte'} ? 'active'">
+                Crear soporte
+            </a>
+        </div>
+    </div>
+    <div class="mp-dash-dropdown">
+        <button type="button" class="mp-dash-link mp-dash-toggle"
+                th:classappend="${activo == 'mis-sustratos' || activo == 'publicar-sustrato'} ? 'active'"
+                data-bs-toggle="collapse" data-bs-target="#mpDashSustratos"
+                aria-controls="mpDashSustratos"
+                th:attr="aria-expanded=${activo == 'mis-sustratos' || activo == 'publicar-sustrato'}">
+            <i class="bi bi-moisture"></i> Sustratos
+            <i class="bi bi-chevron-down mp-dash-caret" aria-hidden="true"></i>
+        </button>
+        <div id="mpDashSustratos" class="collapse mp-dash-submenu"
+             th:classappend="${activo == 'mis-sustratos' || activo == 'publicar-sustrato'} ? 'show'">
+            <a th:href="@{/dashboard/mis-sustratos}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'mis-sustratos'} ? 'active'">
+                Mis sustratos
+            </a>
+            <a th:href="@{/dashboard/publicar-sustrato}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'publicar-sustrato'} ? 'active'">
+                Crear sustrato
+            </a>
+        </div>
+    </div>
+
+    <div class="mp-dash-group">PROMOCIONES</div>
+    <div class="mp-dash-dropdown">
+        <button type="button" class="mp-dash-link mp-dash-toggle"
+                th:classappend="${activo == 'combos' || activo == 'mis-combos'} ? 'active'"
+                data-bs-toggle="collapse" data-bs-target="#mpDashCombos"
+                aria-controls="mpDashCombos"
+                th:attr="aria-expanded=${activo == 'combos' || activo == 'mis-combos'}">
+            <i class="bi bi-box-seam"></i> Combos
+            <i class="bi bi-chevron-down mp-dash-caret" aria-hidden="true"></i>
+        </button>
+        <div id="mpDashCombos" class="collapse mp-dash-submenu"
+             th:classappend="${activo == 'combos' || activo == 'mis-combos'} ? 'show'">
+            <a th:href="@{/dashboard/mis-combos}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'mis-combos'} ? 'active'">
+                Mis combos
+            </a>
+            <a th:href="@{/dashboard/promociones/crear-combos}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'combos'} ? 'active'">
+                Crear combos
+            </a>
+        </div>
+    </div>
+    <div class="mp-dash-dropdown">
+        <button type="button" class="mp-dash-link mp-dash-toggle"
+                th:classappend="${activo == 'rebajas' || activo == 'mis-rebajas'} ? 'active'"
+                data-bs-toggle="collapse" data-bs-target="#mpDashRebajas"
+                aria-controls="mpDashRebajas"
+                th:attr="aria-expanded=${activo == 'rebajas' || activo == 'mis-rebajas'}">
+            <i class="bi bi-tags"></i> Rebajas
+            <i class="bi bi-chevron-down mp-dash-caret" aria-hidden="true"></i>
+        </button>
+        <div id="mpDashRebajas" class="collapse mp-dash-submenu"
+             th:classappend="${activo == 'rebajas' || activo == 'mis-rebajas'} ? 'show'">
+            <a th:href="@{/dashboard/mis-rebajas}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'mis-rebajas'} ? 'active'">
+                Mis rebajas
+            </a>
+            <a th:href="@{/dashboard/promociones/crear-rebajas}" class="mp-dash-link mp-dash-sublink"
+               th:classappend="${activo == 'rebajas'} ? 'active'">
+                Crear rebajas
+            </a>
+        </div>
+    </div>
+    <a sec:authorize="hasRole('ADMIN')" th:href="@{/dashboard/promociones/envios-gratis}"
+       class="mp-dash-link" th:classappend="${activo == 'envios-gratis'} ? 'active'">
+        <i class="bi bi-truck"></i> Envíos gratis
+    </a>
+</aside>
+
+</body>
+</html>

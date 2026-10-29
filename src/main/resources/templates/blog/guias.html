@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Guías de cuidado')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4">
+    <h1 class="mb-4">Guías de cuidado</h1>
+    <div class="row g-4">
+        <div class="col-md-4" th:each="g : ${guias}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${g.tituloFicha}"></h5>
+                    <p class="text-muted small" th:if="${g.plant != null}" th:text="'Planta: ' + ${g.plant.nombreComun}"></p>
+                    <p class="text-muted small" th:if="${g.categoriaGenerica != null}" th:text="'Categoría: ' + ${g.categoriaGenerica}"></p>
+                    <ul class="list-unstyled small">
+                        <li><strong>Riego:</strong> <span th:text="${g.frecuenciaRiego}"></span></li>
+                        <li><strong>Humedad:</strong> <span th:text="${g.humedad}"></span></li>
+                        <li><strong>Temperatura:</strong> <span th:text="${g.temperatura}"></span></li>
+                    </ul>
+                    <p th:text="${g.recomendaciones}"></p>
+                </div>
+            </div>
+        </div>
+        <p th:if="${#lists.isEmpty(guias)}" class="text-muted">Todavía no hay guías cargadas.</p>
+    </div>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,30 @@
+-- Más variedad de macetas: nuevos tamaños y materiales (categoría 6 = Macetas).
+-- Sin id explícito: deja que AUTO_INCREMENT asigne los siguientes (evita colisiones con datos de prueba).
+INSERT INTO plantas (
+    nombre_comun, nombre_cientifico, descripcion, precio, stock, imagen_url,
+    fecha_publicacion, categoria_id, tamano, luz, tipo_maceta, tipo_sustrato, tipo_accesorio, vendedor_id,
+    activo, ambiente, clima, nivel_cuidado, tipo_planta, es_combo, created_by, created_at) VALUES
+ ('Maceta de plástico 15cm', 'Polipropileno', 'Liviana y económica, con orificios de drenaje y color antracita.',
+  1200.00, 60, '/images/placeholder-planta.svg', NOW(),
+  6, 'PEQUENO', 'MEDIA_SOMBRA', 'PLASTICO', NULL, NULL, 2, 1, NULL, NULL, NULL, NULL, 0, 'seed', NOW()),
+ ('Maceta de plástico 30cm', 'Polipropileno reforzado', 'Muy resistente, ideal para exteriores y macetones de patio.',
+  2600.00, 40, '/images/placeholder-planta.svg', NOW(),
+  6, 'GRANDE', 'MEDIA_SOMBRA', 'PLASTICO', NULL, NULL, 2, 1, NULL, NULL, NULL, NULL, 0, 'seed', NOW()),
+ ('Macetero de barro artesanal 12cm', 'Terracota artesanal', 'Hecho a mano, poroso y perfecto para esquejes y plantines.',
+  1800.00, 45, '/images/placeholder-planta.svg', NOW(),
+  6, 'PEQUENO', 'MEDIA_SOMBRA', 'BARRO', NULL, NULL, 2, 1, NULL, NULL, NULL, NULL, 0, 'seed', NOW()),
+ ('Maceta de barro grande 35cm', 'Terracota prensada', 'Modelo clásico con amplio diámetro para cactus y suculentas grandes.',
+  5200.00, 20, '/images/placeholder-planta.svg', NOW(),
+  6, 'GRANDE', 'MEDIA_SOMBRA', 'BARRO', NULL, NULL, 2, 1, NULL, NULL, NULL, NULL, 0, 'seed', NOW()),
+ ('Maceta cerámica modernista', 'Cerámica de autor', 'Diseño orgánico esmaltado en tono arena, con plato a juego.',
+  4200.00, 25, '/images/placeholder-planta.svg', NOW(),
+  6, 'PEQUENO', 'MEDIA_SOMBRA', 'CERAMICA', NULL, NULL, 2, 1, NULL, NULL, NULL, NULL, 0, 'seed', NOW()),
+ ('Maceta cerámica japonesa', 'Cerámica esmaltada', 'Estética wabi-sabi con esmalte craquelado y base de madera.',
+  9800.00, 15, '/images/placeholder-planta.svg', NOW(),
+  6, 'GRANDE', 'MEDIA_SOMBRA', 'CERAMICA', NULL, NULL, 2, 1, NULL, NULL, NULL, NULL, 0, 'seed', NOW()),
+ ('Maceta autorriego 40cm', 'Plástico con reservorio', 'Gran reservorio de agua, ideal para especies exigentes en hidratación.',
+  11800.00, 12, '/images/placeholder-planta.svg', NOW(),
+  6, 'GIGANTE', 'MEDIA_SOMBRA', 'AUTORRIEGO', NULL, NULL, 2, 1, NULL, NULL, NULL, NULL, 0, 'seed', NOW()),
+ ('Maceta autorriego con bandeja', 'Plástico con indicador', 'Incluye indicador de nivel de agua para regar menos y mejor.',
+  6400.00, 30, '/images/placeholder-planta.svg', NOW(),
+  6, 'MEDIANO', 'MEDIA_SOMBRA', 'AUTORRIEGO', NULL, NULL, 2, 1, NULL, NULL, NULL, NULL, 0, 'seed', NOW());

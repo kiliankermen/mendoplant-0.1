@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Promociones')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4">
+    <h1 class="mb-4">Promociones</h1>
+    <p class="text-muted">
+        Las promociones son reglas de descuento por porcentaje. El mejor descuento vigente de cada
+        planta es el que se aplica (nunca se acumulan). La "Llegada de la primavera" ya viene de fábrica
+        como una promoción más, así que también podés editarla o desactivarla.
+    </p>
+
+    <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+    <form th:action="@{/admin/promociones}" th:object="${promo}" method="post" class="card mb-4">
+        <div class="card-body">
+            <input type="hidden" th:field="*{id}"/>
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Nombre *</label>
+                    <input type="text" th:field="*{nombre}" class="form-control" placeholder="Ej: Llegada de la primavera"/>
+                    <small class="text-danger" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></small>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Descuento % *</label>
+                    <input type="number" step="0.01" min="1" max="100" th:field="*{porcentaje}" class="form-control"/>
+                    <small class="text-danger" th:if="${#fields.hasErrors('porcentaje')}" th:errors="*{porcentaje}"></small>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Alcance *</label>
+                    <select th:field="*{tipoAplicacion}" class="form-select" id="tipoAplicacion">
+                        <option th:each="ta : ${tiposAplicacion}" th:value="${ta}" th:text="${ta}"></option>
+                    </select>
+                    <small class="text-danger" th:if="${#fields.hasErrors('tipoAplicacion')}" th:errors="*{tipoAplicacion}"></small>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Activa</label>
+                    <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" th:field="*{activa}"/>
+                        <label class="form-check-label">Vigente</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Desde</label>
+                    <input type="date" th:field="*{fechaInicio}" class="form-control"/>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Hasta</label>
+                    <input type="date" th:field="*{fechaFin}" class="form-control"/>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Días de la semana</label>
+                    <input type="text" th:field="*{diasSemana}" class="form-control"
+                           placeholder="Vacío = todos los días. Ej: 1,3,5 (1=lunes..7=domingo)"/>
+                </div>
+                <div class="col-md-4 d-none" id="campoClima">
+                    <label class="form-label">Solo clima</label>
+                    <select th:field="*{clima}" class="form-select">
+                        <option value="">Todos los climas</option>
+                        <option th:each="tc : ${tiposClima}" th:value="${tc}" th:text="${tc}"></option>
+                    </select>
+                </div>
+                <div class="col-12 d-none" id="campoCategoria">
+                    <label class="form-label">Categoría</label>
+                    <select name="categoriaId" class="form-select">
+                        <option value="">Seleccionar...</option>
+                        <option th:each="c : ${categorias}" th:value="${c.id}"
+                                th:selected="${promo.categoria != null and promo.categoria.id == c.id}"
+                                th:text="${c.nombre}"></option>
+                    </select>
+                </div>
+                <div class="col-12 d-none" id="campoPlantas">
+                    <label class="form-label">Plantas incluidas</label>
+                    <select name="plantaIds" class="form-select" size="6" multiple>
+                        <option th:each="p : ${plantas}" th:value="${p.id}"
+                                th:selected="${promo.plantas.contains(p)}"
+                                th:text="${p.nombreComun}"></option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success mt-3">Guardar promoción</button>
+            <a th:href="@{/admin/promociones}" class="btn btn-outline-secondary mt-3">Cancelar</a>
+        </div>
+    </form>
+
+    <table class="table table-striped align-middle">
+        <thead><tr><th>Nombre</th><th>%</th><th>Alcance</th><th>Vigencia</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="p : ${promos}">
+            <td th:text="${p.nombre}"></td>
+            <td th:text="${p.porcentaje} + '%'"></td>
+            <td th:text="(${p.tipoAplicacion}) + (${p.clima != null} ? ' · ' + ${@etiquetasUtil.clima(p.clima)} : '')"></td>
+            <td>
+                <span th:if="${p.fechaInicio != null or p.fechaFin != null}"
+                      th:text="(${p.fechaInicio != null} ? ${p.fechaInicio} : '—') + ' → ' + (${p.fechaFin != null} ? ${p.fechaFin} : '—')"></span>
+                <span th:if="${p.fechaInicio == null and p.fechaFin == null}" class="text-muted">Sin límite de fechas</span>
+                <div class="small text-muted"
+                     th:if="${p.diasSemana != null and !p.diasSemana.isBlank()}"
+                     th:text="'Días: ' + ${p.diasSemana}"></div>
+            </td>
+            <td>
+                <span class="badge text-bg-success" th:if="${p.activa}">Activa</span>
+                <span class="badge text-bg-secondary" th:unless="${p.activa}">Desactivada</span>
+            </td>
+            <td>
+                <a th:href="@{/admin/promociones/editar/{id}(id=${p.id})}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <form th:if="${p.activa}" th:action="@{/admin/promociones/eliminar/{id}(id=${p.id})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('¿Desactivar esta promoción?')">Desactivar</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    (function () {
+        var sel = document.getElementById('tipoAplicacion');
+        function sincronizar() {
+            var valor = sel ? sel.value : '';
+            document.getElementById('campoClima').classList.toggle('d-none', valor !== 'TODAS');
+            document.getElementById('campoCategoria').classList.toggle('d-none', valor !== 'CATEGORIA');
+            document.getElementById('campoPlantas').classList.toggle('d-none', valor !== 'PLANTAS');
+        }
+        if (sel) {
+            sel.addEventListener('change', sincronizar);
+            sincronizar();
+        }
+    })();
+</script>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

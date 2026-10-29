@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Guías de cuidado - Admin')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4">
+    <h1 class="mb-4">Guías de cuidado</h1>
+
+    <form th:action="@{/admin/guias}" th:object="${guia}" method="post" class="row g-2 mb-4 bg-light p-3 rounded">
+        <div class="col-md-4">
+            <input type="text" th:field="*{tituloFicha}" class="form-control" placeholder="Título de la ficha" required/>
+        </div>
+        <div class="col-md-4">
+            <select name="plantId" class="form-select">
+                <option value="">(opcional) Asociar a planta</option>
+                <option th:each="p : ${plantas}" th:value="${p.id}" th:text="${p.nombreComun}"></option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <input type="text" th:field="*{categoriaGenerica}" class="form-control" placeholder="o Categoría genérica"/>
+        </div>
+        <div class="col-md-4">
+            <input type="text" th:field="*{frecuenciaRiego}" class="form-control" placeholder="Frecuencia de riego"/>
+        </div>
+        <div class="col-md-4">
+            <input type="text" th:field="*{humedad}" class="form-control" placeholder="Humedad"/>
+        </div>
+        <div class="col-md-4">
+            <input type="text" th:field="*{temperatura}" class="form-control" placeholder="Temperatura"/>
+        </div>
+        <div class="col-md-12">
+            <textarea th:field="*{recomendaciones}" class="form-control" placeholder="Recomendaciones" rows="2"></textarea>
+        </div>
+        <div class="col-md-12">
+            <button type="submit" class="btn btn-success">Guardar ficha</button>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead><tr><th>Título</th><th>Asociada a</th><th></th></tr></thead>
+        <tbody>
+        <tr th:each="g : ${guias}">
+            <td th:text="${g.tituloFicha}"></td>
+            <td th:text="${g.plant != null ? g.plant.nombreComun : g.categoriaGenerica}"></td>
+            <td>
+                <form th:action="@{/admin/guias/eliminar/{id}(id=${g.id})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('¿Eliminar ficha?')">Eliminar</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

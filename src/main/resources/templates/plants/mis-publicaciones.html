@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis publicaciones')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Mis publicaciones</h1>
+        <a th:href="@{/dashboard/mis-combos}" class="btn btn-success">+ Publicar nueva planta</a>
+    </div>
+    <table class="table table-striped align-middle">
+        <thead>
+        <tr><th>Nombre</th><th>Precio</th><th>Stock</th><th>Estado</th><th></th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${plantas}">
+            <td th:text="${p.nombreComun}"></td>
+            <td th:text="'$' + ${p.precio}"></td>
+            <td th:text="${p.stock}"></td>
+            <td>
+                <span class="badge bg-success" th:if="${p.activo}">Activa</span>
+                <span class="badge bg-secondary" th:unless="${p.activo}">Retirada</span>
+            </td>
+            <td>
+                <a th:href="@{/plantas/{slug}(slug=${#strings.toLowerCase(#strings.replace(#strings.replace(p.nombreCientifico,' ','-'),'_','-'))})}" class="btn btn-sm btn-outline-secondary">Ver</a>
+                <a th:href="@{/plantas/editar/{id}(id=${p.id})}" class="btn btn-sm btn-outline-primary">Editar</a>
+                <form th:action="@{/plantas/eliminar/{id}(id=${p.id})}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('¿Retirar esta publicación?')">Retirar</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(plantas)}" class="text-muted">Todavía no publicaste ninguna planta.</p>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

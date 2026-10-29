@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Plantas')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="mp-home">
+    <div class="container">
+
+        <!-- ============ BUSCADOR + FILTROS (igual que la portada) ============ -->
+        <div class="mp-searchbar-wrap">
+        <div class="mp-searchbar">
+            <form action="" method="get" class="mp-searchbar-row">
+                <div class="mp-search-input">
+                    <span class="mp-search-icon"><i class="bi bi-search"></i></span>
+                    <input type="text" name="texto" placeholder="Buscá plantas por nombre..."
+                           th:value="${filtro.texto}" autocomplete="off"/>
+                    <button type="submit" class="mp-search-cta" title="Buscar" aria-label="Buscar">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <button type="button" class="mp-filter-btn" id="btnFiltro" aria-expanded="false"
+                        title="Buscar por precio">
+                    <i class="bi bi-funnel"></i> <span id="filtroLabel">Buscar por precio</span>
+                </button>
+            </form>
+
+            <div th:replace="~{fragments/layout :: filtro(${gruposFiltro}, '', 'todos', ${filtro})}"></div>
+        </div>
+
+        <!-- Filtro aplicado: cartel colgado del buscador -->
+        <div class="mp-filtros-cartel" th:if="${filtroActivo}">
+            <span><i class="bi bi-funnel-fill me-1"></i>Filtros aplicados: <strong th:text="${filtrosResumen}">-</strong> <span class="mp-filtros-cantidad">(elementos encontrados: <strong th:text="${totalProductos}">0</strong>)</span></span>
+            <a th:href="@{/}" class="mp-filtros-limpiar"><i class="bi bi-x-lg me-1"></i>Limpiar</a>
+        </div>
+        </div>
+
+        <!-- ============ ORDEN POR VENTAS + ALFABÉTICO + PRECIO (misma fila) ============ -->
+        <div class="mp-cattabs" style="padding-top:50px">
+            <div class="mp-orden-grupo">
+                <th:block th:replace="~{fragments/layout :: ordenVentas(${orden})}"></th:block>
+            </div>
+            <div class="mp-orden-grupo">
+                <th:block th:replace="~{fragments/layout :: ordenNombre(${orden})}"></th:block>
+            </div>
+            <span class="mp-orden-gap"></span>
+            <div class="mp-orden-grupo">
+                <th:block th:replace="~{fragments/layout :: ordenPrecio(${orden})}"></th:block>
+            </div>
+        </div>
+
+        <!-- ============ CATÁLOGO COMPLETO ============ -->
+        <section class="mp-section mp-resultado" style="margin-top: 24px;">
+            <div class="mp-section-head">
+                <h2 th:text="${filtroActivo} ? 'Resultado' : 'Todas las plantas'">Catálogo</h2>
+                <span class="mp-count" th:text="'Se encontraron ' + ${totalProductos} + ' productos'">-</span>
+            </div>
+            <p class="text-muted small mb-3">
+                <i class="bi me-1" th:classappend="${orden == 'precio-asc' or orden == 'precio-desc'} ? 'bi-tag' : (${orden == 'nombre-asc' or orden == 'nombre-desc'} ? 'bi-sort-alpha-down' : 'bi-graph-up-arrow')"></i>
+                <span th:switch="${orden}">
+                    <span th:case="'precio-asc'">Ordenadas por menor precio primero.</span>
+                    <span th:case="'precio-desc'">Ordenadas por mayor precio primero.</span>
+                    <span th:case="'ventas-asc'">Ordenadas por menos vendidas primero.</span>
+                    <span th:case="'nombre-asc'">Ordenadas alfabéticamente (A-Z) por nombre común.</span>
+                    <span th:case="'nombre-desc'">Ordenadas alfabéticamente (Z-A) por nombre común.</span>
+                    <span th:case="*">Ordenadas por más vendidas primero.</span>
+                </span>
+            </p>
+            <div th:replace="~{fragments/layout :: cardGrid(${plantas})}"></div>
+            <div th:replace="~{fragments/layout :: paginacion}"></div>
+        </section>
+
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+    <title th:text="${titulo} + ' | Plant Finder'">Plant Finder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:wght@300;400&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Roboto:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+    <link rel="icon" type="image/png" href="/images/logo.png"/>
+    <link rel="stylesheet" th:href="@{/css/styles.css?v=178}"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/app.js?v=73}" defer></script>
+</head>
+<body>
+
+<!-- ============================================================
+     HEADER GLOBAL
+============================================================ -->
+<th:block th:fragment="navbar">
+<header class="mp-header">
+    <div class="mp-header-inner container">
+        <div class="mp-header-bottom">
+        <a class="mp-brand" th:href="@{/}">
+            <img class="mp-logo" src="/images/logo.png"
+                 alt="Logo Plant Finder"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='inline';"/>
+            <span class="mp-brand-fallback" style="display:none">🌿</span>
+            <span class="mp-brand-name">Plant Finder</span>
+        </a>
+        <div class="mp-header-left">
+            <nav class="mp-nav" aria-label="Navegación principal">
+                <a class="mp-nav-item" th:href="@{/}" title="Inicio"
+                   th:classappend="${urlActual == '/'} ? 'active'">
+                    <svg viewBox="0 0 16 16" width="1.15em" height="1.15em" fill="none" stroke="currentColor"
+                         stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 7.5 8 2.5l6 5"/>
+                        <path d="M3.5 6.5V13h9V6.5"/>
+                        <path d="M6.5 13v-3.5h3V13"/>
+                    </svg><span>Inicio</span>
+                </a>
+                <!-- Plantas: menú desplegable al pasar el cursor (flotante, no mueve nada) -->
+                <div class="mp-nav-frame">
+                    <a class="mp-nav-item" th:href="@{/tienda/plantas}" title="Plantas"
+                       th:classappend="${#strings.startsWith(urlActual ?: '', '/tienda/plantas')} ? 'active'">
+                        <svg viewBox="0 0 16 16" width="1.15em" height="1.15em" fill="none" stroke="currentColor"
+                             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 14c0-6 3.2-10 12-12 0 8.5-4.2 12-12 12Z"/>
+                            <path d="M2.6 13.4C4 10 7.2 6.4 14 2"/>
+                        </svg><span>Plantas</span>
+                    </a>
+                    <div class="mp-dropdown" aria-label="Subcategorías de Plantas">
+                        <div class="mp-drop-col">
+                            <a class="mp-drop-todas" th:href="@{/tienda/plantas}">Todas</a>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Ambiente</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda(ambientes=INTERIOR)}">Interior</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(ambientes=EXTERIOR)}">Exterior</a>
+                                </div>
+                            </div>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Clima</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda(climas=TEMPLADO)}">Templado</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(climas=TROPICAL)}">Tropical</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(climas=SECO)}">Seco</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(climas=HUMEDO)}">Húmedo</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(climas=FRIO)}">Frío</a>
+                                </div>
+                            </div>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Luz</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda(luces=SOL_DIRECTO)}">Sol directo</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(luces=SOMBRA)}">Sombra</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(luces=MEDIA_SOMBRA)}">Media sombra</a>
+                                </div>
+                            </div>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Cuidado</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda(nivelesCuidado=PRINCIPIANTE)}">Principiante</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(nivelesCuidado=INTERMEDIO)}">Intermedio</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(nivelesCuidado=EXPERTO)}">Experto</a>
+                                </div>
+                            </div>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Tipo</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=SUCULENTA)}">Suculenta</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=CACTUS)}">Cactus</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=HELECHO)}">Helecho</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=FLOR)}">Flor</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=TREBOL)}">Trébol</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=ARBOL)}">Árbol</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=ARBUSTO)}">Arbusto</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=ENREDADERA)}">Enredadera</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=PALMERA)}">Palmera</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=ORQUIDEA)}">Orquídea</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=AROMATICA)}">Aromática</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tiposPlanta=TROPICAL)}">Tropical</a>
+                                </div>
+                            </div>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Tamaño</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda(tamanos=PEQUENO)}">Pequeño</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tamanos=MEDIANO)}">Mediano</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tamanos=GRANDE)}">Grande</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda(tamanos=GIGANTE)}">Gigante</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mp-nav-frame">
+                    <a class="mp-nav-item" th:href="@{/tienda/macetas}" title="Macetas"
+                       th:classappend="${#strings.startsWith(urlActual ?: '', '/tienda/macetas')} ? 'active'">
+                        <svg viewBox="0 0 16 16" width="1.15em" height="1.15em" fill="none" stroke="currentColor"
+                             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 6h10l-1.1 7.2a1 1 0 0 1-1 .8H5.1a1 1 0 0 1-1-.8L3 6Z"/>
+                            <path d="M2.5 4.5h11"/>
+                        </svg><span>Macetas</span>
+                    </a>
+                    <div class="mp-dropdown" aria-label="Subcategorías de Macetas">
+                        <div class="mp-drop-col">
+                            <a class="mp-drop-todas" th:href="@{/tienda/macetas}">Todas</a>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Material</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda/macetas(tipoMaceta=PLASTICO)}">Plástico</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/macetas(tipoMaceta=BARRO)}">Barro</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/macetas(tipoMaceta=CERAMICA)}">Cerámica</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/macetas(tipoMaceta=AUTORRIEGO)}">Autorriego</a>
+                                </div>
+                            </div>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Tamaño</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda/macetas(tamano=PEQUENO)}">Pequeño</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/macetas(tamano=MEDIANO)}">Mediano</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/macetas(tamano=GRANDE)}">Grande</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/macetas(tamano=GIGANTE)}">Gigante</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mp-nav-frame">
+                    <a class="mp-nav-item" th:href="@{/tienda/soportes}" title="Soportes"
+                       th:classappend="${#strings.startsWith(urlActual ?: '', '/tienda/soportes')} ? 'active'">
+                        <svg viewBox="0 0 16 16" width="1.15em" height="1.15em" fill="none" stroke="currentColor"
+                             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 4.5h12v5H2z"/>
+                            <path d="M4.5 9.5v3"/>
+                            <path d="M11.5 9.5v3"/>
+                            <path d="M2 3.5h12"/>
+                        </svg><span>Soportes</span>
+                    </a>
+                    <div class="mp-dropdown" aria-label="Subcategorías de Soportes">
+                        <div class="mp-drop-col">
+                            <a class="mp-drop-todas" th:href="@{/tienda/soportes}">Todos</a>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Tipo</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda/soportes(tipoAccesorio=MESA)}">Mesa para macetas</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/soportes(tipoAccesorio=COLGANTE)}">Colgante</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/soportes(tipoAccesorio=ESTANTE)}">Estante</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/soportes(tipoAccesorio=TUTOR)}">Tutor</a>
+                                </div>
+                            </div>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Tamaño</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda/soportes(tamano=PEQUENO)}">Pequeño</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/soportes(tamano=MEDIANO)}">Mediano</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/soportes(tamano=GRANDE)}">Grande</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/soportes(tamano=GIGANTE)}">Gigante</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mp-nav-frame">
+                    <a class="mp-nav-item" th:href="@{/tienda/sustratos}" title="Sustrato"
+                       th:classappend="${#strings.startsWith(urlActual ?: '', '/tienda/sustratos')} ? 'active'">
+                        <i class="bi bi-moisture"></i><span>Sustrato</span>
+                    </a>
+                    <div class="mp-dropdown" aria-label="Subcategorías de Sustratos">
+                        <div class="mp-drop-col">
+                            <a class="mp-drop-todas" th:href="@{/tienda/sustratos}">Todos</a>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Tipo</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda/sustratos(tipoSustrato=UNIVERSAL)}">Universal</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/sustratos(tipoSustrato=CACTUS_SUCULENTAS)}">Cactus y suculentas</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/sustratos(tipoSustrato=DRENAJE_ALTO)}">Drenaje alto</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/sustratos(tipoSustrato=TURBA_PERLITA)}">Turba y perlita</a>
+                                </div>
+                            </div>
+                            <div class="mp-drop-cat">
+                                <span class="mp-drop-cat-label">Tamaño</span>
+                                <div class="mp-drop-sub">
+                                    <a class="mp-drop-link" th:href="@{/tienda/sustratos(tamano=PEQUENO)}">Pequeño</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/sustratos(tamano=MEDIANO)}">Mediano</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/sustratos(tamano=GRANDE)}">Grande</a>
+                                    <a class="mp-drop-link" th:href="@{/tienda/sustratos(tamano=GIGANTE)}">Gigante</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="mp-header-actions">
+            <!-- Corazón: Mis favoritos -->
+            <a sec:authorize="isAuthenticated()" th:href="@{/wishlist}" class="mp-icon-btn"
+               title="Mis favoritos" aria-label="Mis favoritos">
+                <i class="bi" th:classappend="${#strings.startsWith(urlActual ?: '', '/wishlist')} ? 'bi-heart-fill text-danger' : 'bi-heart'"></i>
+                <span class="mp-nav-label">Favoritos</span>
+            </a>
+
+            <!-- Campana: bandeja de notificaciones -->
+            <div class="dropdown" id="notifDropdown">
+                <button class="mp-icon-btn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"
+                        title="Notificaciones" aria-label="Notificaciones">
+                    <i class="bi" th:classappend="${notificacionesSilenciadas} ? 'bi-bell-slash' : 'bi-bell'"></i>
+                    <span class="mp-badge" th:if="${notificacionesNoLeidas > 0}"
+                          th:text="${notificacionesNoLeidas > 99} ? '+99' : ${notificacionesNoLeidas}">0</span>
+                    <span class="mp-nav-label">Notificaciones</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end mp-dropdown-wide">
+                    <h6 class="dropdown-header">Bandeja de notificaciones</h6>
+                    <div th:if="${!#lists.isEmpty(notificaciones)}"
+                         th:each="n : ${notificaciones}"
+                         class="mp-notif-row"
+                         th:classappend="${!n.leida and !notificacionesSilenciadas} ? 'unread'">
+                        <a th:href="${n.plantaId != null} ? @{/plantas/{id}(id=${n.plantaId})} : null"
+                           class="mp-notif">
+                            <span class="mp-notif-icon" th:text="${n.icono}">🌱</span>
+                            <div>
+                                <strong th:text="${n.titulo}">Título</strong>
+                                <p th:text="${n.mensaje}">Mensaje</p>
+                                <small th:text="${#temporals.format(n.fecha, 'dd/MM/yyyy')}">fecha</small>
+                            </div>
+                        </a>
+                        <form th:action="@{/notificaciones/{id}/eliminar(id=${n.id})}" method="post"
+                              class="mp-notif-del">
+                            <input type="hidden" name="redirect" th:value="${urlActual}"/>
+                            <button type="submit" title="Eliminar notificación" aria-label="Eliminar notificación">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </form>
+                    </div>
+                    <p class="mp-notif-empty px-3 py-2 text-muted small mb-0" th:if="${#lists.isEmpty(notificaciones)}">
+                        No tenés notificaciones por ahora.
+                    </p>
+                    <div class="mp-notif-toolbar" sec:authorize="isAuthenticated()">
+                        <form th:action="@{/notificaciones/silenciar}" method="post">
+                            <input type="hidden" name="redirect" th:value="${urlActual}"/>
+                            <button type="submit" class="btn btn-sm btn-outline-secondary w-100">
+                                <i class="bi" th:classappend="${notificacionesSilenciadas} ? 'bi-bell-fill' : 'bi-bell-slash'"></i>
+                                <span th:text="${notificacionesSilenciadas} ? 'Activar notificaciones' : 'Silenciar notificaciones'">Silenciar notificaciones</span>
+                            </button>
+                        </form>
+                        <form th:action="@{/notificaciones/eliminar-todas}" method="post"
+                              onsubmit="return confirm('¿Eliminar todas las notificaciones?');">
+                            <input type="hidden" name="redirect" th:value="${urlActual}"/>
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                <i class="bi bi-trash3 me-1"></i>Eliminar todas las notificaciones
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registro de compras -->
+            <a sec:authorize="isAuthenticated()" th:href="@{/ordenes}" class="mp-icon-btn mp-hide-movil"
+               title="Registro de compras" aria-label="Registro de compras">
+                <i class="bi bi-clipboard2-check"></i>
+                <span class="mp-nav-label">Compras</span>
+            </a>
+
+            <!-- Carrito funcional -->
+            <div class="dropdown" id="cartDropdown">
+                <button class="mp-icon-btn" data-bs-toggle="dropdown" aria-expanded="false"
+                        title="Carrito" aria-label="Ver la compra actual">
+                    <i class="bi bi-cart"></i>
+                    <span class="mp-badge" th:if="${carritoCantidad > 0}" th:text="${carritoCantidad}">0</span>
+                    <span class="mp-nav-label">Carrito</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end mp-dropdown-wide mp-cart-menu">
+                    <h6 class="dropdown-header">Tu compra actual</h6>
+                    <div class="mp-cart-cuerpo" th:fragment="cartMenu">
+                        <div class="mp-cart-scroll" th:if="${carritoVacio != null && !carritoVacio}">
+                            <div th:each="item : ${carritoItems}" class="mp-cart-item">
+                                <img th:src="${@imageStorageService.imagenPlanta(item.plantId, item.imagenUrl)}" alt="" class="mp-cart-thumb"
+                                     onerror="this.onerror=null; this.src='/images/placeholder-planta.svg'"/>
+                                <div class="flex-grow-1">
+                                    <strong th:text="${item.nombre}">Planta</strong>
+                                    <div class="small text-muted" th:text="'$' + ${item.precioMostrado}">$0</div>
+                                    <div class="small text-muted" th:text="'× ' + ${item.cantidad}">× 1</div>
+                                </div>
+                                <span class="fw-bold" th:text="'$' + ${item.subtotal}">$0</span>
+                                <form th:action="@{/carrito/quitar/{id}(id=${item.plantId})}" method="post" class="ms-1 js-cart-remove"
+                                      th:attr="data-planta-nombre=${item.nombre}">
+                                    <button class="btn btn-sm btn-outline-danger border-0" title="Quitar" aria-label="Quitar del carrito">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <p class="px-3 py-2 text-muted small mb-0" th:if="${carritoVacio != null && carritoVacio}">Tu carrito está vacío.</p>
+                        <div class="mp-cart-pie" th:if="${carritoVacio != null && !carritoVacio}">
+                            <div class="mp-cart-degrade"></div>
+                            <div class="dropdown-divider"></div>
+                            <div class="d-flex justify-content-between px-3 pb-1">
+                                <span>Total</span>
+                                <span class="fw-bold" th:text="'$' + ${carritoTotal}">$0</span>
+                            </div>
+                            <div class="d-grid gap-2 px-3 py-2">
+                                <a th:href="@{/carrito}" class="btn btn-sm btn-outline-success">Ver carrito</a>
+                                <a th:href="@{/ordenes/checkout}" class="btn btn-sm btn-mp w-100">Finalizar compra</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Perfil / avatar -->
+            <a sec:authorize="isAnonymous()" th:href="@{/login}" class="mp-icon-btn"
+               title="Ingresar" aria-label="Ingresar">
+                <i class="bi bi-person"></i>
+                <span class="mp-nav-label">Perfil</span>
+            </a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/cuenta}" class="mp-icon-btn"
+               title="Mi cuenta" aria-label="Mi cuenta">
+                <img th:src="${avatarUrl}" alt="Perfil" class="mp-avatar mp-avatar-sm"/>
+                <span class="mp-nav-label">Perfil</span>
+            </a>
+
+            <!-- Menú de tres líneas -->
+            <div class="dropdown">
+                <button class="mp-icon-btn" data-bs-toggle="dropdown" aria-expanded="false"
+                        title="Menú" aria-label="Abrir menú">
+                    <i class="bi bi-list"></i>
+                    <span class="mp-nav-label">Menú</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/blog/guias-cuidado}">
+                        <i class="bi bi-question-circle text-muted me-2"></i>Centro de Ayuda</a></li>
+                    <li><hr class="dropdown-divider"/></li>
+                    <li sec:authorize="isAuthenticated()">
+                        <a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/wishlist}"><i class="bi bi-heart me-2"></i>Favoritos</a>
+                    </li>
+                    <li sec:authorize="isAuthenticated()">
+                        <a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/ordenes}"><i class="bi bi-clock-history me-2"></i>Historial</a>
+                    </li>
+                    <li sec:authorize="isAuthenticated()">
+                        <a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/cuenta}"><i class="bi bi-person me-2"></i>Perfil</a>
+                    </li>
+                    <li sec:authorize="isAnonymous()">
+                        <a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/registro}"><i class="bi bi-person-plus me-2"></i>Registrarse</a>
+                    </li>
+                    <li sec:authorize="isAnonymous()">
+                        <a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/login}"><i class="bi bi-box-arrow-in-right me-2"></i>Iniciar sesión</a>
+                    </li>
+                    <li><hr class="dropdown-divider"/></li>
+                    <li sec:authorize="hasAnyRole('VENDEDOR','ADMIN')">
+                        <a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/dashboard/mis-combos}"><i class="bi bi-box-seam me-2"></i>Mis combos</a>
+                    </li>
+                    <li sec:authorize="hasAnyRole('VENDEDOR','ADMIN')">
+                        <a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/dashboard/publicar-planta}"><i class="bi bi-bag-plus me-2"></i>Vender una planta</a>
+                    </li>
+                    <li><a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/blog}"><i class="bi bi-newspaper me-2"></i>Blog</a></li>
+                    <li><a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/blog/guias-cuidado}"><i class="bi bi-book me-2"></i>Guías de cuidado</a></li>
+                    <li sec:authorize="hasRole('ADMIN')">
+                        <a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/admin}"><i class="bi bi-speedometer2 me-2"></i>Panel Admin</a>
+                    </li>
+                    <li sec:authorize="hasAnyRole('VENDEDOR','ADMIN')">
+                        <a class="dropdown-item" target="_blank" rel="noopener" th:href="@{/dashboard}"><i class="bi bi-grid-1x2 me-2"></i>Dashboard</a>
+                    </li>
+                    <li sec:authorize="isAuthenticated()"><hr class="dropdown-divider"/></li>
+                    <li sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" method="post" class="px-2">
+                            <button class="btn btn-sm btn-outline-danger w-100">
+                                <i class="bi bi-box-arrow-right me-1"></i>Salir
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        </div>
+
+        <div class="mp-header-links">
+            <a th:href="@{/tienda(ambientes=INTERIOR)}">Interior</a>
+            <a th:href="@{/tienda(ambientes=EXTERIOR)}">Exterior</a>
+            <a th:href="@{/tienda(tiposPlanta=TROPICAL)}">Tropical</a>
+            <a th:href="@{/tienda(nivelesCuidado=PRINCIPIANTE)}">Cuidado fácil</a>
+            <a th:href="@{/tienda(tiposPlanta=AROMATICA)}">Aromática</a>
+            <a th:href="@{/tienda(tiposPlanta=FLOR)}">Flor</a>
+            <a th:href="@{/tienda(tiposPlanta=CACTUS)}">Cactus</a>
+            <a th:href="@{/tienda(tiposPlanta=PALMERA)}">Palmera</a>
+            <a th:href="@{/tienda(tiposPlanta=SUCULENTA)}">Suculenta</a>
+            <a th:href="@{/tienda(tamanos=PEQUENO)}">Pequeño</a>
+            <a th:href="@{/tienda(tiposAccesorio=COLGANTE)}">Colgante</a>
+            <a th:href="@{/tienda(tiposAccesorio=TUTOR)}">Tutor</a>
+            <a th:href="@{/tienda(tiposSustrato=UNIVERSAL)}">Sustrato universal</a>
+        </div>
+    </div>
+    </header>
+
+    <!-- Confirmación para quitar una planta desde el menú del carrito -->
+    <div class="modal fade" id="mpQuitarCarritoModal" tabindex="-1" aria-labelledby="mpQuitarCarritoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mpQuitarCarritoModalLabel">Quitar del carrito</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Deseas eliminar <strong id="mpQuitarPlantaNombre">esta planta</strong> del carrito?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">No</button>
+                    <button type="button" class="btn btn-mp" id="mpQuitarCarritoConfirmar">Sí, quitar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón volver arriba -->
+    <button type="button" class="mp-scroll-top" id="scrollTopBtn" aria-label="Volver arriba" title="Volver arriba">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
+<!-- Categorías rápidas para celular: visibles en todas las subrutas -->
+<nav class="mp-cattabs-mobile mp-cattabs-mobile-global"
+     th:unless="${urlActual == '/' or #strings.startsWith(urlActual ?: '', '/tienda')}">
+    <a th:href="@{/}" th:classappend="${urlActual == '/'} ? ' active'" class="mp-catbtn">
+        <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 7.5 8 2.5l6 5"/>
+            <path d="M3.5 6.5V13h9V6.5"/>
+            <path d="M6.5 13v-3.5h3V13"/>
+        </svg>
+        Inicio
+    </a>
+    <a th:href="@{/tienda/plantas}" th:classappend="${#strings.startsWith(urlActual ?: '', '/tienda/plantas')} ? ' active'" class="mp-catbtn">
+        <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 14c0-6 3.2-10 12-12 0 8.5-4.2 12-12 12Z"/>
+            <path d="M2.6 13.4C4 10 7.2 6.4 14 2"/>
+        </svg>
+        Plantas
+    </a>
+    <a th:href="@{/tienda/macetas}" th:classappend="${#strings.startsWith(urlActual ?: '', '/tienda/macetas')} ? ' active'" class="mp-catbtn">
+        <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 6h10l-1.1 7.2a1 1 0 0 1-1 .8H5.1a1 1 0 0 1-1-.8L3 6Z"/>
+            <path d="M2.5 4.5h11"/>
+        </svg>
+        Macetas
+    </a>
+    <a th:href="@{/tienda/soportes}" th:classappend="${#strings.startsWith(urlActual ?: '', '/tienda/soportes')} ? ' active'" class="mp-catbtn">
+        <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+             stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 4.5h12v5H2z"/>
+            <path d="M4.5 9.5v3"/>
+            <path d="M11.5 9.5v3"/>
+            <path d="M2 3.5h12"/>
+        </svg>
+        Soportes
+    </a>
+    <a th:href="@{/tienda/sustratos}" th:classappend="${#strings.startsWith(urlActual ?: '', '/tienda/sustratos')} ? ' active'" class="mp-catbtn">
+        <i class="bi bi-moisture"></i>
+        Sustratos
+    </a>
+</nav>
+</th:block>
+
+<!-- ============================================================
+     FOOTER GLOBAL
+============================================================ -->
+<footer th:fragment="footer" class="mp-footer">
+    <div class="container">
+        <div class="row g-4 py-5">
+            <div class="col-md-3">
+                <h5>Ayuda</h5>
+                <ul class="mp-footer-list">
+                    <li><a th:href="@{/blog/guias-cuidado}">Centro de ayuda</a></li>
+                    <li><a th:href="@{/blog/guias-cuidado}">Ayuda con tu pedido</a></li>
+                    <li><a th:href="@{/blog/guias-cuidado}">Cuidado y mantenimiento de tus plantas</a></li>
+                    <li><a th:href="@{/blog}">Guía para elegir tu planta ideal</a></li>
+                    <li><a th:href="@{/blog/guias-cuidado}">Cambios y devoluciones</a></li>
+                    <li><a th:href="@{/ordenes}">Problemas con tu pedido</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h5>Plantas para tu hogar</h5>
+                <ul class="mp-footer-list">
+                    <li><a th:href="@{/}">Comprá nuestras plantas</a></li>
+                    <li><a th:href="@{/tienda/plantas}">Armá tu jardín</a></li>
+                    <li><a th:href="@{/tienda/macetas}">Diseñá tu espacio verde</a></li>
+                    <li sec:authorize="hasAnyRole('VENDEDOR','ADMIN')"><a th:href="@{/dashboard/publicar-planta}">Ofrecé tus productos en nuestra tienda</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h5>Recursos para amantes de las plantas</h5>
+                <ul class="mp-footer-list">
+                    <li><a th:href="@{/blog}">Comunidad de jardinería</a></li>
+                    <li><a th:href="@{/blog}">Consejos para cuidar tus plantas</a></li>
+                    <li><a th:href="@{/blog/guias-cuidado}">Sumate a nuestros talleres gratuitos</a></li>
+                    <li><a th:href="@{/}">Encontrá la planta ideal para tu espacio</a></li>
+                    <li><a th:href="@{/registro}">Invitá a un amigo</a></li>
+                </ul>
+            </div>
+            <div class="col-md-3">
+                <h5>Tienda de plantas</h5>
+                <ul class="mp-footer-list">
+                    <li><a th:href="@{/}">Novedades</a></li>
+                    <li><a th:href="@{/blog}">Noticias</a></li>
+                    <li sec:authorize="hasAnyRole('VENDEDOR','ADMIN')"><a th:href="@{/dashboard/publicar-planta}">Trabajá con nosotros</a></li>
+                    <li sec:authorize="hasAnyRole('VENDEDOR','ADMIN')"><a th:href="@{/dashboard/publicar-planta}">Proveedores</a></li>
+                    <li><a th:href="@{/}">Inspiración para tu hogar</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="mp-footer-bottom">
+            <p class="mb-0">© 2026 Plant Finder, Inc.
+                <span class="mp-dot-sep">•</span> <a th:href="@{/terminos}">Privacidad</a>
+                <span class="mp-dot-sep">•</span> <a th:href="@{/terminos}">Términos</a>
+                <span class="mp-dot-sep">•</span> <a th:href="@{/terminos}">Datos de la empresa</a>
+            </p>
+        </div>
+    </div>
+</footer>
+
+
+
+<!-- ============================================================
+     FRAGMENTO: filtro de catálogo
+============================================================ -->
+<form th:fragment="filtro(gruposFiltro,actionUrl,modo,filtro)"
+      th:action="${actionUrl}" method="get"
+      class="mp-filtro-panel" id="filtroPanel" style="display:none;">
+<div class="mp-filtro-scroll">
+    <input type="hidden" name="texto" th:value="${filtro.texto}"/>
+    <div class="d-flex justify-content-end mb-1">
+        <button type="button" class="mp-filtro-limpiar" id="btnLimpiarFiltros" title="Limpiar filtros">
+            <i class="bi bi-eraser"></i> Limpiar
+        </button>
+        <button type="button" class="mp-filtro-cerrar" id="btnCerrarFiltros" title="Cerrar filtros" aria-label="Cerrar filtros">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="row g-3">
+
+        <!-- Filtros del catálogo SOLO en la portada (/):
+             cada campo es un desplegable con casillas y se pueden marcar
+             varias opciones del mismo campo (se acumulan). -->
+        <th:block th:if="${modo == 'home'}">
+            <div class="col-12 col-md-6 col-lg-3" th:each="g : ${gruposFiltro}">
+                <label class="form-label mp-filtro-label" th:text="${g.titulo}">Filtro</label>
+                <div class="mp-multiselect">
+                    <button type="button" class="mp-multiselect-btn"
+                            th:attr="data-campo=${g.campo}" aria-expanded="false">
+                        <span class="mp-multiselect-texto" data-texto="Todos">Todos</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="mp-multiselect-menu">
+                        <label class="mp-multiselect-opcion" th:each="o : ${g.opciones}">
+                            <input type="checkbox" th:name="${g.campo}" th:value="${o.valor}"
+                                   th:checked="${o.seleccionado}"/>
+                            <span class="mp-multiselect-label" th:text="${o.etiqueta}">Opción</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </th:block>
+
+        <!-- Precio (presente siempre) -->
+        <div class="col-6 col-md-3 col-lg-2" th:if="${modo == 'home'}">
+            <label class="form-label mp-filtro-label">Precio mínimo</label>
+            <input type="number" name="precioMin" class="form-control form-control-sm" th:value="${filtro.precioMin}"/>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2" th:if="${modo == 'home'}">
+            <label class="form-label mp-filtro-label">Precio máximo</label>
+            <input type="number" name="precioMax" class="form-control form-control-sm" th:value="${filtro.precioMax}"/>
+        </div>
+
+        <!-- Subrutas: SOLO precio (grande) -->
+        <th:block th:unless="${modo == 'home'}">
+            <div class="col-12 col-md-6">
+                <label class="form-label mp-filtro-label">Precio mínimo</label>
+                <input type="number" name="precioMin" class="form-control form-control-lg" th:value="${filtro.precioMin}"/>
+            </div>
+            <div class="col-12 col-md-6">
+                <label class="form-label mp-filtro-label">Precio máximo</label>
+                <input type="number" name="precioMax" class="form-control form-control-lg" th:value="${filtro.precioMax}"/>
+            </div>
+        </th:block>
+    </div>
+    </div>
+
+    <div class="mp-filtro-pie">
+        <div class="mp-filtro-degrade"></div>
+    </div>
+</form>
+
+<!-- ============================================================
+     FRAGMENTO: ordenamiento del catálogo (grupos para insertar en mp-cattabs)
+     ============================================================ -->
+<th:block th:fragment="ordenVentas(orden)">
+    <span class="mp-orden-label">Ventas</span>
+    <button type="button" class="mp-catbtn mp-ordenbtn mp-ventas" data-orden="ventas-desc"
+       th:classappend="${orden == null or orden == 'ventas-desc'} ? 'active'">
+        <i class="bi bi-graph-up-arrow"></i> Más ventas
+    </button>
+    <button type="button" class="mp-catbtn mp-ordenbtn mp-ventas" data-orden="ventas-asc"
+       th:classappend="${orden == 'ventas-asc'} ? 'active'">
+        <i class="bi bi-graph-down-arrow"></i> Menos ventas
+    </button>
+</th:block>
+
+<th:block th:fragment="ordenPrecio(orden)">
+    <span class="mp-orden-label">Precio</span>
+    <button type="button" class="mp-catbtn mp-ordenbtn mp-precio" data-orden="precio-asc"
+       th:classappend="${orden == 'precio-asc'} ? 'active'">
+        <i class="bi bi-sort-numeric-down"></i> Menor precio
+    </button>
+    <button type="button" class="mp-catbtn mp-ordenbtn mp-precio" data-orden="precio-desc"
+       th:classappend="${orden == 'precio-desc'} ? 'active'">
+        <i class="bi bi-sort-numeric-up"></i> Mayor precio
+    </button>
+</th:block>
+
+<th:block th:fragment="ordenNombre(orden)">
+    <span class="mp-orden-label">Alfabético</span>
+    <button type="button" class="mp-catbtn mp-ordenbtn mp-nombre" data-orden="nombre-asc"
+       th:classappend="${orden == 'nombre-asc'} ? 'active'">
+        <i class="bi bi-sort-alpha-down"></i> A-Z
+    </button>
+    <button type="button" class="mp-catbtn mp-ordenbtn mp-nombre" data-orden="nombre-desc"
+       th:classappend="${orden == 'nombre-desc'} ? 'active'">
+        <i class="bi bi-sort-alpha-up"></i> Z-A
+    </button>
+</th:block>
+
+<div th:fragment="card(planta)" class="pcard"
+     th:with="pct=${@promocionService.porcentajeDescuentoVisible(planta)},
+              esOferta=${@promocionService.esOfertaDelDia(planta)}"
+     th:attr="data-descuento=${pct},
+              data-oferta-dia=${esOferta},
+              data-combo=${planta.esCombo}">
+        <a th:href="@{/plantas/{slug}(slug=${#strings.toLowerCase(#strings.replace(#strings.replace(planta.nombreCientifico,' ','-'),'_','-'))})}" class="pcard-img">
+        <img class="pcard-img-base" th:src="${@imageStorageService.imagenPlanta(planta.id, planta.imagenUrl)}"
+             th:alt="'Foto de ' + ${planta.nombreComun}"
+             onerror="this.onerror=null; this.src='/images/placeholder-planta.svg'"/>
+        <img class="pcard-img-hover" loading="lazy"
+             th:if="${@imageStorageService.imagenPlantaHover(planta.id, planta.imagenUrl)} != null"
+             th:src="${@imageStorageService.imagenPlantaHover(planta.id, planta.imagenUrl)}"
+             th:alt="'Foto de ' + ${planta.nombreComun}"
+             onerror="this.onerror=null; this.style.display='none'"/>
+        <!-- Badge de tamaño y material (solo macetas) -->
+        <div class="pcard-maceta"
+             th:if="${planta.categoria != null and planta.categoria.nombre == 'Macetas' and !planta.tiposMaceta.isEmpty()}">
+            <span class="pcard-maceta-item" th:each="t : ${planta.tamanos}"
+                  th:text="${@etiquetasUtil.tamano(t)}">MEDIANO</span>
+            <span class="pcard-maceta-item" th:each="m : ${planta.tiposMaceta}"
+                  th:text="${@etiquetasUtil.tipoMaceta(m)}">PLASTICO</span>
+        </div>
+    </a>
+
+    <!-- Cartel rojo de oferta (esquina superior izquierda, solo si hay descuento vigente) -->
+    <div class="pcard-oferta"
+         th:classappend="${planta.esCombo} ? 'pcard-oferta-combo'"
+         th:if="${pct > 0 or esOferta or planta.esCombo}"
+         th:switch="true">
+        <span th:case="${pct > 0}" th:text="'-' + ${pct} + '%'">-30%</span>
+        <span th:case="${esOferta}">Oferta del día</span>
+        <span th:case="${planta.esCombo}">Combo</span>
+    </div>
+
+    <!-- Corazón de favoritos -->
+    <div class="pcard-heart">
+        <form sec:authorize="isAuthenticated()"
+              th:action="${misFavoritos.contains(planta.id)}
+                         ? @{/wishlist/quitar/{id}(id=${planta.id})}
+                         : @{/wishlist/agregar/{id}(id=${planta.id})}"
+              method="post" class="pcard-heart-form js-wishlist-form"
+              th:attr="data-planta-id=${planta.id}">
+            <button type="submit" class="pcard-heart-btn"
+                    th:classappend="${misFavoritos.contains(planta.id)} ? 'active'" aria-label="Favorito">
+                <i class="bi" th:classappend="${misFavoritos.contains(planta.id)} ? 'bi-heart-fill' : 'bi-heart'"></i>
+            </button>
+        </form>
+        <a sec:authorize="isAnonymous()" th:href="@{/login}" class="pcard-heart-btn" aria-label="Iniciar sesión para guardar">
+            <i class="bi bi-heart"></i>
+        </a>
+    </div>
+
+    <div class="pcard-body">
+        <a th:href="@{/plantas/{slug}(slug=${#strings.toLowerCase(#strings.replace(#strings.replace(planta.nombreCientifico,' ','-'),'_','-'))})}" class="pcard-name" th:text="${planta.nombreComun}">Nombre</a>
+        <div class="pcard-sci" th:text="${planta.nombreCientifico}">Científico</div>
+        <div class="pcard-price">
+            <span class="pcard-old"
+                  th:if="${pct > 0}"
+                  th:text="'$' + ${planta.precio}">$0000</span>
+            <span class="pcard-now"
+                  th:text="'$' + ${@promocionService.precioConDescuento(planta)}">$0000</span>
+        </div>
+        <div class="pcard-stock">
+            <span class="stock-msg" th:classappend="${planta.stock < 10} ? ' stock-low'"
+                  th:text="${planta.stock} + ' Disponibles'">50 Disponibles</span>
+        </div>
+        <div class="pcard-actions">
+            <form th:action="@{/carrito/agregar}" method="post" class="flex-grow-1 js-cart-add">
+                <input type="hidden" name="plantId" th:value="${planta.id}"/>
+                <button type="submit" class="btn btn-mp btn-sm w-100">
+                    <i class="bi bi-cart-plus me-1"></i>Agregar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bloque de resultados reutilizable: cabecera + grilla + paginación.
+     Es lo único que se reemplaza al filtrar vía AJAX (sin recargar la página). -->
+<div th:fragment="resultado" id="mp-resultado"
+     th:attr="data-filtro-activo=${filtroActivo},
+              data-filtros-resumen=${filtrosResumen},
+              data-total=${totalProductos},
+              data-base-path=${basePath}">
+    <section class="mp-section" th:if="${!#lists.isEmpty(plantas)}">
+        <div class="mp-section-head">
+            <h2 th:text="${categoriaTitulo} ?: 'Resultado'">Categoría</h2>
+            <span class="mp-count" th:text="${totalProductos} + ' productos'">0 productos</span>
+        </div>
+        <div th:replace="~{fragments/layout :: cardGrid(${plantas})}"></div>
+        <div th:replace="~{fragments/layout :: paginacion}"></div>
+    </section>
+    <section class="mp-section" th:if="${#lists.isEmpty(plantas)}">
+        <div class="mp-empty alert alert-light text-center py-5">
+            <i class="bi bi-emoji-frown display-4 d-block mb-2 text-muted"></i>
+            No se encontraron productos en esta categoría con esos criterios.
+        </div>
+    </section>
+</div>
+
+<!-- Grilla reutilizable de tarjetas -->
+<div th:fragment="cardGrid(plantas)" class="row g-4">
+    <div class="col-xl-3 col-lg-4 col-md-6 col-12" th:each="planta : ${plantas}">
+        <div th:replace="~{fragments/layout :: card(${planta})}"></div>
+    </div>
+    <p th:if="${#lists.isEmpty(plantas)}" class="text-muted px-2">
+        No se encontraron productos con esos criterios.
+    </p>
+</div>
+
+<!-- Numeración de páginas (solo si hay más de 20 tarjetas) -->
+<nav th:fragment="paginacion" class="mp-pagination" aria-label="Paginación"
+     th:if="${paginacion != null and paginacion.visible}">
+    <a class="mp-page-btn mp-page-prev" th:if="${paginacion.anterior != null}"
+       th:href="${paginacion.anterior}" aria-label="Página anterior">
+        <i class="bi bi-chevron-left"></i>
+    </a>
+    <th:block th:each="pg : ${paginacion.paginas}">
+        <span class="mp-page-ellipsis" th:if="${pg.numero <= 0}">…</span>
+        <a th:unless="${pg.numero <= 0}"
+           class="mp-page-btn" th:classappend="${pg.actual} ? ' active'"
+           th:href="${pg.url}"
+           th:aria-label="'Ir a la página ' + ${pg.numero}"
+           th:text="${pg.numero}">1</a>
+    </th:block>
+    <a class="mp-page-btn mp-page-next" th:if="${paginacion.siguiente != null}"
+       th:href="${paginacion.siguiente}" aria-label="Página siguiente">
+        <i class="bi bi-chevron-right"></i>
+    </a>
+</nav>
+
+<!-- Carrusel horizontal con flechas -->
+<div th:fragment="carousel(plantas)" class="mp-carousel">
+    <div class="mp-carousel-track">
+        <div class="mp-carousel-slide" th:each="planta : ${plantas}">
+            <div th:replace="~{fragments/layout :: card(${planta})}"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

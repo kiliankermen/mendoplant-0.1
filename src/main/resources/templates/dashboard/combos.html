@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Crear combos')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container-fluid my-4">
+    <div class="mp-dash-layout">
+        <div th:replace="~{fragments/dashboard :: sidebar(${seccion})}"></div>
+
+        <main class="mp-dash-main">
+            <div class="mp-dash-title">
+                <div>
+                    <h1>Crear combos</h1>
+                    <p class="text-muted mb-0">Elegí productos y creá un combo con ellos.</p>
+                </div>
+                <span class="mp-dash-chip" th:text="${#lists.size(combos)} + ' combos creados'">0 combos</span>
+            </div>
+
+            <div class="alert alert-success" th:if="${ok}" th:text="${ok}"></div>
+            <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+            <form th:action="@{/dashboard/promociones/crear-combos}" method="post">
+                <section class="mp-selected-panel" aria-live="polite">
+                    <div class="mp-selected-head">
+                        <div>
+                            <h2>Productos seleccionados</h2>
+                            <p class="text-muted small mb-0">Estos productos van a formar parte del combo.</p>
+                        </div>
+                        <span class="mp-dash-chip" id="mpComboCount">0</span>
+                    </div>
+                    <div class="mp-selected-list" id="mpComboSeleccionados">
+                        <p class="mp-selected-empty">Todavía no seleccionaste productos.</p>
+                    </div>
+                </section>
+
+                <section class="mp-dash-card">
+                    <div class="mp-dash-card-head">
+                        <h2>Tus productos</h2>
+                        <button type="submit" class="btn btn-mp" id="mpCrearCombo">
+                            <i class="bi bi-box2-heart me-1"></i>Crear combo
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nombreCombo" class="form-label">Nombre del combo</label>
+                        <input type="text" class="form-control" id="nombreCombo" name="nombre" required
+                               maxlength="120" placeholder="Ej: Combo para iniciantes">
+                    </div>
+
+                    <div class="mp-dash-search">
+                        <i class="bi bi-search"></i>
+                        <input type="search" id="mpBuscarCombo" class="form-control"
+                               placeholder="Buscar producto por nombre..." autocomplete="off"/>
+                    </div>
+
+                    <div class="mp-select-grid" id="mpComboGrid" th:if="${!#lists.isEmpty(productos)}">
+                        <label class="mp-select-card" th:each="p : ${productos}"
+                               th:attr="data-nombre=${p.nombreComun + ' ' + p.nombreCientifico}">
+                            <input type="checkbox" name="productos" th:value="${p.id}"/>
+                            <img th:src="${@imageStorageService.imagenPlanta(p.id, p.imagenUrl)}" alt=""
+                                 onerror="this.onerror=null;this.src='/images/placeholder-planta.svg'"/>
+                            <span class="mp-select-check"><i class="bi bi-check-lg"></i></span>
+                            <strong class="mp-select-name" th:text="${p.nombreComun}">Producto</strong>
+                            <span class="text-muted small mp-select-price" th:text="'$' + ${p.precio}">$0</span>
+                            <span class="text-muted small" th:text="${p.stock} + ' disponibles'">0</span>
+                        </label>
+                    </div>
+                    <p class="mp-dash-search-empty" id="mpComboSinResultados" hidden>
+                        No encontramos productos con ese nombre.
+                    </p>
+                    <p class="text-muted mb-0" th:if="${#lists.isEmpty(productos)}">
+                        No tenés productos disponibles para combinar.
+                    </p>
+                    <p class="text-muted small mt-3 mb-0">
+                        Seleccioná al menos 2 productos. El combo se publica con la suma de los precios
+                        y el menor stock de los productos elegidos.
+                    </p>
+                </section>
+            </form>
+
+            <section class="mp-dash-card">
+                <div class="mp-dash-card-head">
+                    <h2>Combos creados</h2>
+                    <a th:href="@{/dashboard/mis-combos}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+                </div>
+                <div class="row g-3" th:if="${!#lists.isEmpty(combos)}">
+                    <div class="col-md-6 col-xl-4" th:each="p : ${combos}">
+                        <article class="mp-promo-mini">
+                            <img th:src="${@imageStorageService.imagenPlanta(p.id, p.imagenUrl)}" alt=""
+                                 onerror="this.onerror=null;this.src='/images/placeholder-planta.svg'"/>
+                            <div>
+                                <strong th:text="${p.nombreComun}">Combo</strong>
+                                <span class="d-block fw-bold" th:text="'$' + ${p.precio}">$0</span>
+                                <a th:href="@{/plantas/{slug}(slug=${#strings.toLowerCase(#strings.replace(#strings.replace(p.nombreCientifico,' ','-'),'_','-'))})}"
+                                   class="btn btn-sm btn-outline-secondary mt-2">Ver</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                <p class="text-muted mb-0" th:if="${#lists.isEmpty(combos)}">Todavía no creaste combos.</p>
+            </section>
+        </main>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script>
+    (function () {
+        const form = document.querySelector('form[action$="/promociones/crear-combos"]');
+        if (!form) return;
+        const grid = document.getElementById('mpComboGrid');
+        const buscador = document.getElementById('mpBuscarCombo');
+        const sinResultados = document.getElementById('mpComboSinResultados');
+        const listaSeleccionados = document.getElementById('mpComboSeleccionados');
+        const contador = document.getElementById('mpComboCount');
+
+        function normalizar(texto) {
+            return (texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+
+        function marcados() {
+            return grid ? Array.from(grid.querySelectorAll('input[name="productos"]:checked')) : [];
+        }
+
+        function renderSeleccionados() {
+            const seleccionados = marcados();
+            if (grid) {
+                grid.querySelectorAll('.mp-select-card').forEach(carta => {
+                    const check = carta.querySelector('input[name="productos"]');
+                    carta.classList.toggle('is-selected', !!(check && check.checked));
+                });
+            }
+            contador.textContent = seleccionados.length;
+            listaSeleccionados.innerHTML = '';
+            if (!seleccionados.length) {
+                const vacio = document.createElement('p');
+                vacio.className = 'mp-selected-empty';
+                vacio.textContent = 'Todavía no seleccionaste productos.';
+                listaSeleccionados.appendChild(vacio);
+                filtrar();
+                return;
+            }
+            seleccionados.forEach(input => {
+                const carta = input.closest('.mp-select-card');
+                const item = document.createElement('article');
+                item.className = 'mp-selected-card';
+
+                const foto = document.createElement('img');
+                const fotoOriginal = carta.querySelector('img');
+                foto.src = fotoOriginal.currentSrc || fotoOriginal.src;
+                foto.alt = '';
+
+                const info = document.createElement('div');
+                info.className = 'mp-selected-info';
+                const nombre = document.createElement('strong');
+                nombre.textContent = carta.querySelector('.mp-select-name').textContent;
+                const precio = document.createElement('span');
+                precio.textContent = carta.querySelector('.mp-select-price').textContent;
+                info.append(nombre, precio);
+
+                const quitar = document.createElement('button');
+                quitar.type = 'button';
+                quitar.className = 'mp-selected-remove';
+                quitar.setAttribute('aria-label', 'Quitar producto');
+                const icono = document.createElement('i');
+                icono.className = 'bi bi-x-lg';
+                quitar.appendChild(icono);
+                quitar.addEventListener('click', () => {
+                    input.checked = false;
+                    renderSeleccionados();
+                });
+
+                item.append(foto, info, quitar);
+                listaSeleccionados.appendChild(item);
+            });
+            filtrar();
+        }
+
+        function filtrar() {
+            if (!grid) return;
+            const termino = normalizar(buscador.value.trim());
+            let visibles = 0;
+            grid.querySelectorAll('.mp-select-card').forEach(carta => {
+                const coincide = !termino || normalizar(carta.dataset.nombre).includes(termino);
+                carta.hidden = !coincide;
+                if (coincide) visibles++;
+            });
+            sinResultados.hidden = visibles > 0;
+        }
+
+        if (grid) {
+            grid.addEventListener('change', event => {
+                if (event.target.matches('input[name="productos"]')) {
+                    renderSeleccionados();
+                }
+            });
+        }
+        buscador.addEventListener('input', filtrar);
+
+        form.addEventListener('submit', function (e) {
+            if (marcados().length < 2) {
+                e.preventDefault();
+                alert('Seleccioná al menos 2 productos para crear el combo.');
+            }
+        });
+
+        renderSeleccionados();
+    })();
+</script>
+</body>
+</html>

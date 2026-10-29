@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head(${planta.nombreComun})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="mp-home">
+    <div class="container my-4">
+        <nav aria-label="breadcrumb" class="small">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="mp-link">Inicio</a></li>
+                <li class="breadcrumb-item active" th:text="${planta.categoria != null ? planta.categoria.nombre : 'Catálogo'}">Catálogo</li>
+            </ol>
+        </nav>
+
+        <div class="row g-4">
+            <div class="col-md-5">
+                <div class="mp-detail-gallery">
+                    <div class="pcard-img mp-detail-img">
+                        <img id="mpDetailMainImg"
+                             th:src="${@imageStorageService.imagenPlanta(planta.id, planta.imagenUrl)}"
+                             alt="Foto de la planta"
+                             onerror="this.onerror=null; this.src='/images/placeholder-planta.svg'"/>
+                    </div>
+                    <div class="mp-detail-thumbs" th:with="imgs=${@imageStorageService.imagenesPlanta(planta.id, planta.imagenUrl, planta.nombreCientifico, planta.nombreComun)}">
+                        <button type="button" class="mp-detail-thumb"
+                                th:each="img, s : ${imgs}"
+                                th:classappend="${s.index == 0} ? 'active' : ''"
+                                th:attr="data-src=${img}"
+                                onclick="mpCambiarImagenDetalle(this)">
+                            <img th:src="${img}" alt="Miniatura de la planta"
+                                 onerror="this.style.display='none'"/>
+                        </button>
+                    </div>
+                </div>
+                <div class="pcard-badges" th:with="pct=${@promocionService.porcentajeDescuentoVisible(planta)}">
+                    <span class="pcard-badge combo" th:if="${planta.esCombo}">Combo</span>
+                    <span class="pcard-badge oferta" th:if="${@promocionService.esOfertaDelDia(planta)}">Oferta del día</span>
+                    <span class="pcard-badge primavera" th:if="${pct > 0}" th:text="'-' + ${pct} + '%'">-30%</span>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <h1 th:text="${planta.nombreComun}">Nombre</h1>
+                <p class="text-muted fst-italic" th:text="${planta.nombreCientifico}">Científico</p>
+                <p th:text="${planta.descripcion}">Descripción</p>
+
+                <div class="mp-detail-price mb-3"
+                     th:with="pct=${@promocionService.porcentajeDescuentoVisible(planta)}">
+                    <span class="display-6 fw-bold mp-price-now"
+                          th:text="'$' + ${@promocionService.precioConDescuento(planta)}">$0</span>
+                    <span class="mp-price-old"
+                          th:if="${pct > 0}"
+                          th:text="'$' + ${planta.precio}">$0</span>
+                </div>
+
+                <div class="mp-detail-tags" th:with="ets=${@etiquetasUtil.etiquetas(planta)}">
+                    <span class="pcard-tag" th:each="et : ${ets}" th:text="${et}">Etiqueta</span>
+                </div>
+
+                <ul class="list-unstyled mp-detail-list">
+                    <li><strong>Ambiente:</strong>
+                        <span th:each="a : ${planta.ambientes}" class="mp-detail-chip"
+                              th:text="${@etiquetasUtil.ambiente(a)}">Interior</span>
+                        <span th:if="${planta.ambientes.isEmpty()}">-</span></li>
+                    <li><strong>Clima:</strong>
+                        <span th:each="c : ${planta.climas}" class="mp-detail-chip"
+                              th:text="${@etiquetasUtil.clima(c)}">Templado</span>
+                        <span th:if="${planta.climas.isEmpty()}">-</span></li>
+                    <li><strong>Cuidado:</strong>
+                        <span th:each="n : ${planta.nivelesCuidado}" class="mp-detail-chip"
+                              th:text="${@etiquetasUtil.nivelCuidado(n)}">Bajo</span>
+                        <span th:if="${planta.nivelesCuidado.isEmpty()}">-</span></li>
+                    <li><strong>Tamaño:</strong>
+                        <span th:each="t : ${planta.tamanos}" class="mp-detail-chip"
+                              th:text="${@etiquetasUtil.tamano(t)}">Mediano</span>
+                        <span th:if="${planta.tamanos.isEmpty()}">-</span></li>
+                    <li><strong>Luz:</strong>
+                        <span th:each="l : ${planta.luces}" class="mp-detail-chip"
+                              th:text="${@etiquetasUtil.luz(l)}">Sol directo</span>
+                        <span th:if="${planta.luces.isEmpty()}">-</span></li>
+                    <li><strong>Maceta recomendada:</strong>
+                        <span th:each="m : ${planta.tiposMaceta}" class="mp-detail-chip"
+                              th:text="${@etiquetasUtil.tipoMaceta(m)}">Maceta de plástico</span>
+                        <span th:if="${planta.tiposMaceta.isEmpty()}">-</span></li>
+                    <li><strong>Sustrato ideal:</strong>
+                        <span th:each="s : ${planta.tiposSustrato}" class="mp-detail-chip"
+                              th:text="${@etiquetasUtil.tipoSustrato(s)}">Tierra enrichida</span>
+                        <span th:if="${planta.tiposSustrato.isEmpty()}">-</span></li>
+                    <li><strong>Stock disponible:</strong>
+                        <span th:text="${planta.stock}
+                            + (${planta.stock < 20} ? ' (¡quedan pocas!)' : '')"></span></li>
+                    <li><strong>Vendido por:</strong> <span th:text="${planta.vendedor != null ? planta.vendedor.nombre : '-'}"></span></li>
+                    <li><strong>Categoría:</strong> <span th:text="${planta.categoria != null ? planta.categoria.nombre : '-'}"></span></li>
+                </ul>
+
+                <div class="d-flex gap-2 mt-3 align-items-center">
+                    <form th:action="@{/carrito/agregar}" method="post" class="d-flex gap-2 align-items-center js-cart-add">
+                        <input type="hidden" name="plantId" th:value="${planta.id}"/>
+                        <input type="number" name="cantidad" min="1" value="1" style="width:80px"
+                               th:max="${planta.stock}" class="form-control" aria-label="Cantidad"/>
+                        <button type="submit" class="btn btn-mp" th:if="${planta.stock > 0}">
+                            <i class="bi bi-cart-plus me-1"></i>Agregar al carrito
+                        </button>
+                    </form>
+                    <a sec:authorize="isAuthenticated()" th:href="@{/ordenes/comprar/{id}(id=${planta.id})}"
+                       class="btn btn-outline-success" th:if="${planta.stock > 0}">Comprar ahora</a>
+                    <span class="btn btn-secondary disabled" th:if="${planta.stock == 0}">Sin stock</span>
+
+<form sec:authorize="isAuthenticated()"
+                      th:action="${enWishlist != null and enWishlist}
+                                 ? @{/wishlist/quitar/{id}(id=${planta.id})}
+                                 : @{/wishlist/agregar/{id}(id=${planta.id})}" method="post"
+                      class="ms-1 js-wishlist-form" th:attr="data-planta-id=${planta.id}">
+                        <button type="submit" class="btn btn-outline-danger" title="Favorito" aria-label="Favorito">
+                            <i class="bi" th:classappend="${enWishlist != null and enWishlist} ? 'bi-heart-fill text-danger' : 'bi-heart'"></i>
+                        </button>
+                    </form>
+                </div>
+                <p class="mt-3" sec:authorize="isAnonymous()">
+                    <a th:href="@{/login}" class="mp-link">Iniciá sesión</a> para comprar en un paso o guardar en favoritos.
+                    El carrito funciona sin cuenta.
+                </p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+function mpCambiarImagenDetalle(btn) {
+    var src = btn.getAttribute('data-src');
+    var img = document.getElementById('mpDetailMainImg');
+    if (src && img) {
+        img.src = src;
+    }
+    document.querySelectorAll('.mp-detail-thumb').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+}
+</script>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

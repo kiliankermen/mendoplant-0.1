@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${categoriaTitulo})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="mp-home">
+    <div class="container my-4">
+        <nav aria-label="breadcrumb" class="small">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="mp-link">Inicio</a></li>
+                <li class="breadcrumb-item active" th:text="${categoriaTitulo}">Categoría</li>
+            </ol>
+        </nav>
+
+        <h1 class="mp-page-title" th:text="${categoriaTitulo}">Categoría</h1>
+        <p class="text-muted">Explorá, buscá y filtrá todo lo que tenemos en
+            <strong th:text="${categoriaTitulo}">Categoría</strong>.</p>
+
+        <!-- Buscador específico de la categoría -->
+        <div class="mp-searchbar-wrap">
+        <div class="mp-searchbar mp-searchbar-filtro-movil" style="top: 5px;">
+        <button type="button" class="mp-searchbar-toggle" id="mpSearchbarToggle" title="Ocultar buscador"
+                aria-expanded="true" aria-label="Ocultar o mostrar buscador">
+            <i class="bi bi-eye-fill"></i>
+        </button>
+            <!-- Categorías rápidas (solo celular, por encima del buscador) -->
+            <div class="mp-cattabs-mobile">
+                <a th:href="@{/}" class="mp-catbtn">
+                    <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+                         stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 7.5 8 2.5l6 5"/>
+                        <path d="M3.5 6.5V13h9V6.5"/>
+                        <path d="M6.5 13v-3.5h3V13"/>
+                    </svg>
+                    Inicio
+                </a>
+                <a th:href="@{/tienda/plantas}" th:classappend="${categoriaSlug == 'plantas'} ? ' active'" class="mp-catbtn">
+                    <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+                         stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 14c0-6 3.2-10 12-12 0 8.5-4.2 12-12 12Z"/>
+                        <path d="M2.6 13.4C4 10 7.2 6.4 14 2"/>
+                    </svg>
+                    Plantas
+                </a>
+                <a th:href="@{/tienda/macetas}" th:classappend="${categoriaSlug == 'macetas'} ? ' active'" class="mp-catbtn">
+                    <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+                         stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 6h10l-1.1 7.2a1 1 0 0 1-1 .8H5.1a1 1 0 0 1-1-.8L3 6Z"/>
+                        <path d="M2.5 4.5h11"/>
+                    </svg>
+                    Macetas
+                </a>
+                <a th:href="@{/tienda/soportes}" th:classappend="${categoriaSlug == 'soportes'} ? ' active'" class="mp-catbtn">
+                    <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+                         stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 4.5h12v5H2z"/>
+                        <path d="M4.5 9.5v3"/>
+                        <path d="M11.5 9.5v3"/>
+                        <path d="M2 3.5h12"/>
+                    </svg>
+                    Soportes
+                </a>
+                <a th:href="@{/tienda/sustratos}" th:classappend="${categoriaSlug == 'sustratos'} ? ' active'" class="mp-catbtn">
+                    <i class="bi bi-moisture"></i>
+                    Sustratos
+                </a>
+                <button type="button" class="mp-filter-btn mp-filter-btn-movil" aria-expanded="false"
+                        title="Buscar por precio">
+                    <i class="bi bi-funnel"></i> <span data-cerrar="Buscar por precio">Buscar por precio</span>
+                </button>
+            </div>
+            <form th:action="@{/tienda/{slug}(slug=${categoriaSlug})}" method="get" class="mp-searchbar-row">
+                <div class="mp-search-input">
+                    <span class="mp-search-icon"><i class="bi bi-search"></i></span>
+                    <input type="text" name="texto"
+                           th:placeholder="'Buscá ' + ${#strings.toLowerCase(categoriaTitulo)} + '...'"
+                           th:value="${filtro.texto}" autocomplete="off"/>
+                    <button type="submit" class="mp-search-cta" title="Buscar" aria-label="Buscar">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <button type="button" class="mp-filter-btn" id="btnFiltro" aria-expanded="false"
+                        title="Buscar por precio">
+                    <i class="bi bi-funnel"></i> <span id="filtroLabel">Buscar por precio</span>
+                </button>
+            </form>
+
+            <div th:replace="~{fragments/layout :: filtro(${gruposFiltro}, @{/tienda/{slug}(slug=${categoriaSlug})}, ${modo}, ${filtro})}"></div>
+        </div>
+
+        <!-- Filtro aplicado: cartel colgado del buscador (pegado al buscador sticky) -->
+        <div class="mp-filtros-cartel" id="mpFiltrosCartel" th:if="${filtroActivo}">
+            <span><i class="bi bi-funnel-fill me-1"></i>Filtros aplicados: <strong id="mpFiltrosResumen" th:text="${filtrosResumen}">-</strong> <span class="mp-filtros-cantidad">(elementos encontrados: <strong id="mpFiltrosTotal" th:text="${totalProductos}">0</strong>)</span></span>
+            <a th:href="@{/tienda/{slug}(slug=${categoriaSlug})}" class="mp-filtros-limpiar">
+                <i class="bi bi-x-lg me-1"></i>Limpiar
+            </a>
+        </div>
+        <!-- Cartel oculto usado al refrescar por AJAX (para mostrarlo si aparece un filtro) -->
+        <div class="mp-filtros-cartel" id="mpFiltrosCartelPlantilla" hidden>
+            <span><i class="bi bi-funnel-fill me-1"></i>Filtros aplicados: <strong id="mpFiltrosResumenTpl">-</strong> <span class="mp-filtros-cantidad">(elementos encontrados: <strong id="mpFiltrosTotalTpl">0</strong>)</span></span>
+            <a th:href="@{/tienda/{slug}(slug=${categoriaSlug})}" class="mp-filtros-limpiar">
+                <i class="bi bi-x-lg me-1"></i>Limpiar
+            </a>
+        </div>
+        </div>
+
+        <!-- Panel de filtros: en escritorio queda como sidebar a la izquierda -->
+        <div class="mp-shop-grid">
+            <aside class="mp-togglebar" th:if="${!#lists.isEmpty(filtrosToggle)}">
+                <button type="button" class="mp-togglebar-toggle" id="mpTogglebarToggle"
+                        title="Ocultar filtros" aria-expanded="true"
+                        aria-label="Ocultar o mostrar los filtros laterales">
+<i class="bi bi-filter"></i>
+                </button>
+                <div class="mp-toggle-scroll">
+
+                    <div class="mp-sf-head">
+                    <span class="mp-sf-titulo">Filtros</span>
+                    <a class="mp-sf-limpiar" th:href="@{/tienda/{slug}(slug=${categoriaSlug})}">
+                        <i class="bi bi-x-lg me-1"></i>Eliminar filtros
+                    </a>
+                </div>
+
+                <label class="mp-toggle-check" for="mpToggleAcumular">
+                    <input type="checkbox" id="mpToggleAcumular" class="visually-hidden"/>
+                    <i class="bi bi-square"></i>
+                    <i class="bi bi-check-square-fill"></i>
+                    <span>Filtros acumulables</span>
+                </label>
+
+                <div class="mp-filtro-modo" id="mpFiltroModo" hidden>
+                    <div class="mp-filtro-modo-titulo">Modo de filtro</div>
+                    <label class="mp-toggle-radio">
+                        <input type="radio" name="modoFiltro" value="INCLUYENTE"
+                               th:checked="${filtro.modoFiltro == null or filtro.modoFiltro == 'INCLUYENTE'}">
+                        <span>Incluyente</span>
+                    </label>
+                    <label class="mp-toggle-radio">
+                        <input type="radio" name="modoFiltro" value="EXCLUYENTE"
+                               th:checked="${filtro.modoFiltro == 'EXCLUYENTE'}">
+                        <span>Excluyente</span>
+                    </label>
+                </div>
+
+                <th:block th:each="grupo, gst : ${filtrosToggle}">
+                    <div class="mp-toggle-grupo">
+                        <span class="mp-toggle-titulo" th:text="${grupo.titulo + ':'}">Ambiente:</span>
+                        <button type="button" class="mp-toggle-btn"
+                                th:each="op : ${grupo.opciones}"
+                                th:data-campo="${grupo.campo}"
+                                th:data-valor="${op.valor}"
+                                th:text="${op.etiqueta}"
+                                th:classappend="${op.activado} ? ' on'"></button>
+                    </div>
+                </th:block>
+
+                <p class="mp-toggle-nota" id="mpToggleNota" hidden>Los filtros son acumulativos. En modo Excluyente, las plantas deben tener TODOS los filtros seleccionados por atributo.</p>
+
+                </div>
+            </aside>
+
+            <div class="mp-shop-main">
+                <!-- Orden por ventas + alfabético + precio en la misma fila -->
+                <div class="mp-cattabs" style="padding-top:10px">
+                    <div class="mp-orden-grupo">
+                        <th:block th:replace="~{fragments/layout :: ordenVentas(${orden})}"></th:block>
+                    </div>
+                    <div class="mp-orden-grupo">
+                        <th:block th:replace="~{fragments/layout :: ordenNombre(${orden})}"></th:block>
+                    </div>
+                    <span class="mp-orden-gap"></span>
+                    <div class="mp-orden-grupo">
+                        <th:block th:replace="~{fragments/layout :: ordenPrecio(${orden})}"></th:block>
+                    </div>
+                </div>
+
+                <!-- Filtros avanzados para móvil: desplegable con los mismos botones -->
+                <div class="mp-filtros-avanzados-movil d-md-none mt-2" th:if="${!#lists.isEmpty(filtrosToggle)}">
+                    <div class="dropdown w-100" data-bs-auto-close="outside">
+                        <button class="mp-btn-filtros-avanzados dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-sliders"></i> Abrir filtros avanzados
+                        </button>
+                        <div class="dropdown-menu w-100 mp-filtros-avanzados-menu" data-bs-auto-close="outside">
+                            <div class="mp-sf-head mp-sf-head-movil">
+                                <span class="mp-sf-titulo">Filtros</span>
+                                <a class="mp-sf-limpiar" th:href="@{/tienda/{slug}(slug=${categoriaSlug})}">
+                                    <i class="bi bi-x-lg me-1"></i>Eliminar filtros
+                                </a>
+                            </div>
+
+                            <label class="mp-toggle-check mp-toggle-check-movil">
+                                <input type="checkbox" class="mp-toggle-acumular-movil visually-hidden"/>
+                                <i class="bi bi-square"></i>
+                                <i class="bi bi-check-square-fill"></i>
+                                <span>Filtros acumulables</span>
+                            </label>
+
+                            <div class="mp-filtro-modo mp-filtro-modo-movil" hidden>
+                                <div class="mp-filtro-modo-titulo">Modo de filtro</div>
+                                <label class="mp-toggle-radio">
+                                    <input type="radio" name="modoFiltro" value="INCLUYENTE"
+                                           th:checked="${filtro.modoFiltro == null or filtro.modoFiltro == 'INCLUYENTE'}">
+                                    <span>Incluyente</span>
+                                </label>
+                                <label class="mp-toggle-radio">
+                                    <input type="radio" name="modoFiltro" value="EXCLUYENTE"
+                                           th:checked="${filtro.modoFiltro == 'EXCLUYENTE'}">
+                                    <span>Excluyente</span>
+                                </label>
+                            </div>
+
+                            <th:block th:each="grupo : ${filtrosToggle}">
+                                <div class="mp-filtros-movil-grupo">
+                                    <span class="mp-filtros-movil-titulo" th:text="${grupo.titulo + ':'}">Ambiente:</span>
+                                    <div class="mp-filtros-movil-btns">
+                                        <button type="button" class="mp-toggle-btn"
+                                                th:each="op : ${grupo.opciones}"
+                                                th:data-campo="${grupo.campo}"
+                                                th:data-valor="${op.valor}"
+                                                th:text="${op.etiqueta}"
+                                                th:classappend="${op.activado} ? ' on'"></button>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                            </th:block>
+
+                            <p class="mp-toggle-nota mp-toggle-nota-movil" hidden>Los filtros son acumulativos. En modo Excluyente, las plantas deben tener TODOS los filtros seleccionados por atributo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Categoría: una sola grilla con sus productos (se refresca vía AJAX) -->
+                <div id="mp-resultado-wrap">
+                    <div th:replace="~{fragments/layout :: resultado}"></div>
+                </div>
+
+                <a th:href="@{/}" class="btn btn-outline-success mt-3">
+                    <i class="bi bi-arrow-left me-1"></i>Volver al inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

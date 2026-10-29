@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Envíos gratis')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container-fluid my-4">
+    <div class="mp-dash-layout">
+        <div th:replace="~{fragments/dashboard :: sidebar(${seccion})}"></div>
+
+        <main class="mp-dash-main">
+            <div class="mp-dash-title">
+                <div>
+                    <h1>Envíos gratis</h1>
+                    <p class="text-muted mb-0">Configurá el monto mínimo para que el envío sea sin cargo.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-success" th:if="${ok}" th:text="${ok}"></div>
+            <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+            <section class="mp-dash-card">
+                <div class="mp-shipping-config">
+                    <span class="mp-shipping-icon"><i class="bi bi-truck"></i></span>
+                    <div>
+                        <span class="text-muted small">Monto actual para envío gratis</span>
+                        <h2 class="mb-0" th:text="'$' + ${envioGratisDesde}">$90000</h2>
+                    </div>
+                    <button type="button" class="btn btn-mp ms-auto" data-bs-toggle="modal"
+                            data-bs-target="#mpEnvioGratisModal">
+                        <i class="bi bi-pencil-square me-1"></i>Modificar monto
+                    </button>
+                </div>
+                <p class="text-muted small mt-3 mb-0">
+                    Este valor se guarda en la configuración del sitio (site_config) y se usa en el
+                    carrito y el checkout para calcular el envío.
+                </p>
+            </section>
+        </main>
+    </div>
+</div>
+
+<div class="modal fade" id="mpEnvioGratisModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form th:action="@{/dashboard/promociones/envios-gratis}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modificar envío gratis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label" for="mpMontoEnvio">Monto a superar</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text">$</span>
+                        <input type="number" id="mpMontoEnvio" name="monto" class="form-control"
+                               min="0" step="100" required th:value="${envioGratisDesde}"/>
+                    </div>
+                    <p class="text-muted small mt-2 mb-0">
+                        Las compras mayores a este monto no pagan envío.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-mp">Guardar monto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

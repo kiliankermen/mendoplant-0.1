@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Panel Admin')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div class="container my-4">
+    <h1 class="mb-4">Panel de Administración</h1>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card text-center p-3"><h2 th:text="${totalPedidos}"></h2><p>Pedidos</p></div></div>
+        <div class="col-md-3"><div class="card text-center p-3"><h2 th:text="${pedidosPendientes}"></h2><p>Pedidos pendientes</p></div></div>
+        <div class="col-md-3"><div class="card text-center p-3"><h2 th:text="${pedidosCompletados}"></h2><p>Pedidos pagados</p></div></div>
+        <div class="col-md-3"><div class="card text-center p-3"><h2 th:text="${totalFacturas}"></h2><p>Facturas emitidas</p></div></div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="card text-center p-3"><h2 th:text="${totalUsuarios}"></h2><p>Usuarios</p></div></div>
+        <div class="col-md-4"><div class="card text-center p-3"><h2 th:text="${totalCategorias}"></h2><p>Categorías</p></div></div>
+        <div class="col-md-4"><div class="card text-center p-3"><h2 th:text="${totalPosts}"></h2><p>Artículos de blog</p></div></div>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="card text-center p-3"><h2 th:text="${totalPromos}"></h2><p>Promociones</p></div></div>
+    </div>
+    <div class="list-group">
+        <a th:href="@{/admin/ordenes}" class="list-group-item list-group-item-action">Gestionar pedidos y envíos</a>
+        <a th:href="@{/admin/plantas}" class="list-group-item list-group-item-action">Plantas y categorías de portada (quién aparece en la página principal)</a>
+        <a th:href="@{/admin/categorias}" class="list-group-item list-group-item-action">Gestionar categorías</a>
+        <a th:href="@{/admin/promociones}" class="list-group-item list-group-item-action">Promociones (descuentos por %) y Oferta del día</a>
+        <a th:href="@{/admin/usuarios}" class="list-group-item list-group-item-action">Gestionar usuarios</a>
+        <a th:href="@{/admin/blog}" class="list-group-item list-group-item-action">Gestionar blog</a>
+        <a th:href="@{/admin/guias}" class="list-group-item list-group-item-action">Gestionar guías de cuidado</a>
+        <a th:href="@{/admin/contenido}" class="list-group-item list-group-item-action">Contenido del Home y Términos</a>
+    </div>
+</div>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Registro histórico de ventas')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container-fluid my-4">
+    <div class="mp-dash-layout">
+        <div th:replace="~{fragments/dashboard :: sidebar(${seccion})}"></div>
+
+        <main class="mp-dash-main">
+            <div class="mp-dash-title">
+                <div>
+                    <h1>Registro histórico de ventas</h1>
+                    <p class="text-muted mb-0">Todas tus ventas completadas desde que tenés la cuenta.</p>
+                </div>
+                <a th:href="@{/dashboard}" class="btn-mp-ghost">
+                    <i class="bi bi-arrow-left me-1"></i>Volver al dashboard
+                </a>
+            </div>
+
+            <section class="mp-stat-grid mb-4">
+                <article class="mp-stat-card">
+                    <span class="mp-stat-label">Ventas registradas</span>
+                    <span class="mp-stat-value" th:text="${totalVentas}">0</span>
+                    <small class="text-muted">pedidos con tus productos</small>
+                </article>
+                <article class="mp-stat-card">
+                    <span class="mp-stat-label">Total facturado</span>
+                    <span class="mp-stat-value" th:text="'$' + ${#numbers.formatDecimal(totalFacturado, 1, 'POINT', 2, 'COMMA')}">$0</span>
+                    <small class="text-muted">suma de tus líneas vendidas</small>
+                </article>
+                <article class="mp-stat-card">
+                    <span class="mp-stat-label">Unidades vendidas</span>
+                    <span class="mp-stat-value" th:text="${totalUnidades}">0</span>
+                    <small class="text-muted">productos entregados</small>
+                </article>
+            </section>
+
+            <section class="mp-dash-card">
+                <div class="mp-dash-card-head">
+                    <div>
+                        <h2>Detalle de ventas</h2>
+                        <p class="text-muted small mb-0">Pedidos completados ordenados del más reciente al más antiguo.</p>
+                    </div>
+                </div>
+
+                <p class="text-muted small" th:if="${#lists.isEmpty(ventas)}">
+                    Todavía no tenés ventas completadas registradas.
+                </p>
+
+                <div class="mp-hist-lista" th:unless="${#lists.isEmpty(ventas)}">
+                    <article class="mp-hist-item" th:each="v : ${ventas}">
+                        <div class="mp-hist-head" data-bs-toggle="collapse"
+                             th:attr="data-bs-target='#hist' + ${v['ordenId']}"
+                             role="button" aria-expanded="false">
+                            <div class="mp-hist-info">
+                                <strong th:text="'Pedido #' + ${v['ordenId']}">Pedido #0</strong>
+                                <small class="text-muted"
+                                       th:text="${#temporals.format(v['fecha'], 'dd/MM/yyyy HH:mm')}">-</small>
+                                <small class="text-muted" th:text="'Comprador: ' + ${v['comprador']}">Comprador</small>
+                            </div>
+                            <div class="mp-hist-totales">
+                                <span class="mp-hist-monto" th:text="'$' + ${#numbers.formatDecimal(v['montoVendedor'], 1, 'POINT', 2, 'COMMA')}">$0</span>
+                                <small class="text-muted" th:text="${v['unidades']} + ' unidades'">0 unidades</small>
+                                <i class="bi bi-chevron-down mp-hist-chevron"></i>
+                            </div>
+                        </div>
+                        <div class="collapse mp-hist-detalle" th:id="'hist' + ${v['ordenId']}">
+                            <table class="mp-hist-tabla">
+                                <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th class="text-end">Precio unit.</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="it : ${v['items']}">
+                                    <td th:text="${it['producto']}">Producto</td>
+                                    <td class="text-end" th:text="${it['cantidad']}">0</td>
+                                    <td class="text-end" th:text="'$' + ${#numbers.formatDecimal(it['precio'], 1, 'POINT', 2, 'COMMA')}">$0</td>
+                                    <td class="text-end" th:text="'$' + ${#numbers.formatDecimal(it['subtotal'], 1, 'POINT', 2, 'COMMA')}">$0</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

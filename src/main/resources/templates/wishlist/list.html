@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mis favoritos')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="mp-home">
+    <div class="container my-4">
+        <h1 class="mb-4 mp-page-title"><i class="bi bi-heart-fill text-danger me-2"></i>Mis favoritos</h1>
+        <div th:replace="~{fragments/layout :: cardGrid(${plantas})}"></div>
+        <div class="mp-empty alert alert-light text-center py-5" th:if="${plantas.isEmpty()}">
+            <i class="bi bi-heart display-4 d-block mb-2 text-muted"></i>
+            Todavía no agregaste plantas a favoritos.
+            <div class="mt-3">
+                <a th:href="@{/}" class="btn btn-mp">Explorar la tienda</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

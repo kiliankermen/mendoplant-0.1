@@ -1,0 +1,274 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
+<body class="mp-home-page">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="mp-home">
+    <div class="mp-hero">
+        <div class="mp-hero-bg" aria-hidden="true"></div>
+        <div class="container">
+
+        <!-- ============ 0. LEYENDA ============ -->
+        <p class="mp-tagline">Donde las plantas elijen a sus dueños</p>
+        <p class="mp-tagline-sub">Somos una tienda online especializada en plantas para darle vida y personalidad a cada espacio.</p>
+
+        <!-- ============ 2. BOTONES DE CATEGORÃA (Combos y Promociones) ============ -->
+        <div class="mp-cattabs" style="padding-top:10px;">
+            <div class="mp-social-group">
+                <a href="https://wa.me/c/5492617019164" target="_blank" rel="noopener noreferrer" class="mp-socialbtn mp-social-wa" title="WhatsApp" aria-label="WhatsApp">
+                    <i class="bi bi-whatsapp"></i>
+                </a>
+                <a href="https://www.instagram.com/kiliankermen/" target="_blank" rel="noopener noreferrer" class="mp-socialbtn mp-social-ig" title="Instagram" aria-label="Instagram">
+                    <i class="bi bi-instagram"></i>
+                </a>
+                <a href="https://www.facebook.com/kilianleonelkermen" target="_blank" rel="noopener noreferrer" class="mp-socialbtn mp-social-fb" title="Facebook" aria-label="Facebook">
+                    <i class="bi bi-facebook"></i>
+                </a>
+                <a href="https://x.com/" target="_blank" rel="noopener noreferrer" class="mp-socialbtn mp-social-x" title="X" aria-label="X">
+                    <i class="bi bi-twitter-x"></i>
+                </a>
+                <a href="https://maps.app.goo.gl/VJK2gxLmuG7Dmwbh6" target="_blank" rel="noopener noreferrer" class="mp-socialbtn mp-social-gm" title="Google Maps" aria-label="Google Maps">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </a>
+            </div>
+            <div class="mp-rightgroup" style="display:flex; gap:10px; margin-left:auto; flex-wrap:wrap;">
+                <a th:href="@{/(promo=combos)}" class="mp-catbtn mp-combobtn"
+                   th:classappend="${promoParam == 'combos'} ? 'active'">
+                    <i class="bi bi-boxes"></i> Combos
+                </a>
+                <a href="#promociones" class="mp-catbtn mp-promobtn"
+                   th:classappend="${promoParam != null and promoParam != 'combos'} ? 'active'">
+                    <i class="bi bi-percent"></i> Promociones
+                </a>
+            </div>
+        </div>
+
+        <!-- ============ 1. BUSCADOR (vidrio) + cartel de filtros ============ -->
+        <div class="mp-searchbar-wrap">
+        <div class="mp-searchbar mp-searchbar-filtro-movil">
+            <!-- Categorías rápidas (solo celular, por encima del buscador) -->
+            <div class="mp-cattabs-mobile">
+                <a th:href="@{/tienda/plantas}" class="mp-catbtn">
+                    <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+                         stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2 14c0-6 3.2-10 12-12 0 8.5-4.2 12-12 12Z"/>
+                        <path d="M2.6 13.4C4 10 7.2 6.4 14 2"/>
+                    </svg>
+                    Plantas
+                </a>
+                <a th:href="@{/tienda/macetas}" class="mp-catbtn">
+                    <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+                         stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 6h10l-1.1 7.2a1 1 0 0 1-1 .8H5.1a1 1 0 0 1-1-.8L3 6Z"/>
+                        <path d="M2.5 4.5h11"/>
+                    </svg>
+                    Macetas
+                </a>
+                <a th:href="@{/tienda/soportes}" class="mp-catbtn">
+                    <svg viewBox="0 0 16 16" width="1.05em" height="1.05em" fill="none" stroke="currentColor"
+                         stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 3.5h10"/>
+                        <path d="M4.5 3.5 3 12"/>
+                        <path d="M11.8 3.5 13 12"/>
+                        <path d="M2.6 12h10.8"/>
+                        <path d="M4.6 8h6.8"/>
+                    </svg>
+                    Soportes
+                </a>
+                <a th:href="@{/tienda/sustratos}" class="mp-catbtn">
+                    <i class="bi bi-moisture"></i> Sustratos
+                </a>
+                <button type="button" class="mp-filter-btn mp-filter-btn-movil" aria-expanded="false"
+                        title="Abrir filtros" data-cerrar-sin-cambios="true">
+                    <i class="bi bi-funnel"></i> <span data-cerrar="Abrir filtros">Abrir filtros</span>
+                </button>
+            </div>
+
+            <form th:action="@{/tienda}" method="get" class="mp-searchbar-row">
+                <div class="mp-search-input">
+                    <span class="mp-search-icon"><i class="bi bi-search"></i></span>
+                    <input type="text" name="texto" placeholder="Buscá plantas, macetas, sustratos, combos..."
+                           th:value="${filtro.texto}" autocomplete="off"/>
+                    <button type="submit" class="mp-search-cta" title="Buscar" aria-label="Buscar">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+                <button type="button" class="mp-filter-btn" id="btnFiltro" aria-expanded="false"
+                        title="Abrir filtros" data-cerrar-sin-cambios="true">
+                    <i class="bi bi-funnel"></i> <span id="filtroLabel" data-cerrar="Abrir filtros">Abrir filtros</span>
+                </button>
+            </form>
+
+            <!-- Panel de filtros (mismo filtro que el catÃ¡logo) -->
+            <div th:replace="~{fragments/layout :: filtro(${gruposFiltro}, @{/tienda}, 'home', ${filtro})}"></div>
+        </div>
+
+        <!-- Filtro aplicado: cartel colgado del buscador -->
+        <div class="mp-filtros-cartel" th:if="${filtroActivo}">
+            <span><i class="bi bi-funnel-fill me-1"></i>Filtros aplicados: <strong th:text="${filtrosResumen}">-</strong> <span class="mp-filtros-cantidad">(elementos encontrados: <strong th:text="${totalProductos}">0</strong>)</span></span>
+            <a th:href="@{/}" class="mp-filtros-limpiar"><i class="bi bi-x-lg me-1"></i>Limpiar</a>
+        </div>
+        </div>
+
+        <!-- ============ 2c. Resultado ============ -->
+        <section class="mp-section mp-resultado" th:if="${filtroActivo}">
+            <div class="mp-section-head">
+                <h2>Resultado</h2>
+                <span class="mp-count" th:text="'Se encontraron ' + ${#lists.size(plantas)} + ' productos'">-</span>
+            </div>
+            <div th:replace="~{fragments/layout :: cardGrid(${plantas})}"></div>
+        </section>
+
+        <!-- ============ 3. OFERTA DEL DÃA ============ -->
+        <section class="mp-section mp-oferta" th:if="${!filtroActivo && !#lists.isEmpty(ofertasDia)}">
+            <div class="mp-tag-cards">
+                <div class="mp-tag-row">
+                    <a class="mp-tag-card" th:href="@{/tienda/plantas}" title="Ver plantas">
+                        <span class="mp-tag-card-img">
+                            <img src="/images/plants-option.jpg" alt="ELIJE TU PLANTA"/>
+                            <span class="mp-tag-card-cap">
+                                <span class="mp-tag-card-titulo">ELIJE TU PLANTA</span>
+                            </span>
+                        </span>
+                    </a>
+                    <p class="mp-tag-row-txt">Las plantas aportan vida, color y frescura a cualquier espacio. Hay una planta ideal para cada rincón de tu hogar: encontrá¡ la que mejor decore tu casa y llenalo de vida.</p>
+                </div>
+                <div class="mp-tag-row mp-tag-row-alt">
+                    <a class="mp-tag-card" th:href="@{/tienda/macetas}" title="Ver macetas">
+                        <span class="mp-tag-card-img">
+                            <img src="/images/pots-option.jpg" alt="LA MACETA IDEAL"/>
+                            <span class="mp-tag-card-cap">
+                                <span class="mp-tag-card-titulo">LA MACETA IDEAL</span>
+                            </span>
+                        </span>
+                    </a>
+                    <p class="mp-tag-row-txt">La maceta no es un simple contenedor: determina el crecimiento, la salud y la estética de tu planta. Elige la que combine estilo y funcionalidad para que luzca perfecta.</p>
+                </div>
+                <div class="mp-tag-row">
+                    <a class="mp-tag-card" th:href="@{/tienda/soportes}" title="Ver soportes de macetas">
+                        <span class="mp-tag-card-img">
+                            <img src="/images/stand-option.jpg" alt="SOPORTE DE MACETAS"/>
+                            <span class="mp-tag-card-cap">
+                                <span class="mp-tag-card-titulo">SOPORTE DE MACETAS</span>
+                            </span>
+                        </span>
+                    </a>
+                    <p class="mp-tag-row-txt">Un buen soporte realza tu planta y convierte tu rincón favorito en un punto focal elegante. La estética de cada soporte completa la decoración de tu hogar.</p>
+                </div>
+            </div>
+            <div class="mp-section-head">
+                <h2>Ofertas especiales</h2>
+                <div class="mp-carousel-arrows">
+                    <button class="mp-carousel-btn prev" type="button" aria-label="Anterior">
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <button class="mp-carousel-btn next" type="button" aria-label="Siguiente">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div th:replace="~{fragments/layout :: carousel(${ofertasDia})}"></div>
+            <div class="mp-contador" id="contadorOferta" aria-label="Tiempo restante de la oferta del dÃ­a">
+                <div class="mp-contador-txt"><i class="bi bi-hourglass-split"></i>La oferta se renueva en</div>
+                <div class="mp-contador-boxes">
+                    <div class="mp-contador-caja"><span id="c-horas" class="mp-contador-num">00</span><small>horas</small></div>
+                    <span class="mp-contador-sep">:</span>
+                    <div class="mp-contador-caja"><span id="c-min" class="mp-contador-num">00</span><small>min</small></div>
+                    <span class="mp-contador-sep">:</span>
+                    <div class="mp-contador-caja"><span id="c-seg" class="mp-contador-num">00</span><small>seg</small></div>
+                </div>
+            </div>
+        </section>
+
+        </div>
+
+    </div>
+
+    <!-- Separador decorativo entre el video del hero y el contenido. -->
+    <div class="mp-curve" aria-hidden="true"></div>
+
+
+
+    <div class="container mp-sections-panel">
+
+        <div th:if="${!filtroActivo}">
+
+            <section class="mp-section" th:each="seccion : ${secciones}">
+                <div class="mp-section-head">
+                    <h2 th:text="${seccion.titulo}">Plantas de interior</h2>
+                    <div class="mp-carousel-arrows">
+                        <button class="mp-carousel-btn prev" type="button" aria-label="Anterior">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <button class="mp-carousel-btn next" type="button" aria-label="Siguiente">
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div th:replace="~{fragments/layout :: carousel(${seccion.plantas})}"></div>
+                <div class="mp-section-more">
+                    <a th:href="@{/plantas}">Ver más plantas. <i class="bi bi-arrow-right"></i></a>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============ 5. COMBOS ============ -->
+        <section class="mp-section" th:if="${!filtroActivo && !combos.isEmpty()}">
+            <div class="mp-section-head">
+                <h2>Combos</h2>
+                <span class="mp-count">Plantas + macetas + accesorios</span>
+                <div class="mp-carousel-arrows">
+                    <button class="mp-carousel-btn prev" type="button" aria-label="Anterior">
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <button class="mp-carousel-btn next" type="button" aria-label="Siguiente">
+                        <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div th:replace="~{fragments/layout :: carousel(${combos})}"></div>
+        </section>
+
+        <!-- ============ 6. PROMOCIONES ACTIVAS ============ -->
+        <section class="mp-section" id="promociones">
+            <div class="mp-section-head">
+                <h2>Promociones activas</h2>
+                <span class="mp-count" th:text="${@promocionService.isPrimavera()} ? '¡Es primavera!' : 'Promociones de temporada'">-</span>
+            </div>
+            <div id="promoCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+                <div class="carousel-indicators">
+                    <button type="button" th:each="promo, it : ${promos}"
+                            data-bs-target="#promoCarousel"
+                            th:attr="data-bs-slide-to=${it.index}, aria-label='Promo ' + (${it.index} + 1)"
+                            th:classappend="${it.first} ? 'active'"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item" th:each="promo, it : ${promos}"
+                         th:classappend="${it.first} ? 'active'">
+                        <div class="mp-promo" th:classappend="'mp-promo-' + ${promo.color}"
+                             th:style="${promo.colorHex != null and !promo.colorHex.isBlank() ? 'background: linear-gradient(120deg, ' + promo.colorHex + ' 0%, color-mix(in srgb, ' + promo.colorHex + ' 72%, #000) 100%);' : null}">
+                            <div class="mp-promo-content">
+                                <span class="mp-promo-tag" th:text="${promo.badge}">-30%</span>
+                                <h3 th:text="${promo.titulo}">Llegada de la primavera</h3>
+                                <p th:text="${promo.subtitulo}">30% off en tropicales</p>
+                                <div class="mp-promo-meta" th:if="${!promo.activa}">
+                                    <i class="bi bi-info-circle"></i>Disponible solo en su temporada
+                                </div>
+                                <a class="mp-promo-btn"
+                                   th:href="${promo.botonEnlace != null} ? ${promo.botonEnlace} : @{/(promo=${promo.slug})}">
+                                    <span th:text="${promo.botonTexto != null} ? ${promo.botonTexto} : 'Ver productos'">Ver productos</span>
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
